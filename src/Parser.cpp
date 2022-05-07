@@ -136,8 +136,7 @@ AstNodePtr Parser::parseVarDef() {
     logAstNode("VarDef");
     AstNodePtrVector arrLens;
     AstNodePtr initVal;
-    auto id = curToken().getValue();
-    match(TokenType::ID);
+    auto id = parseID();
     while (true) {
         if (tryMatch(TokenType::LSQBRA)) {
             // TODO: change to ConstExp
@@ -187,12 +186,10 @@ AstNodePtr Parser::parseFuncDef() {
     std::string id;
     AstNodePtr params, block;
     funcType = parseFuncType();
-    if (!tryToken(TokenType::ID)) throw error("expected identifier");
-    id = curToken().getValue();
-    nextToken();
-    if (!tryMatch(TokenType::LPARENT)) throw error("expected a '('");
+    id = parseID();
+    match(TokenType::LPARENT);
     if (!tryToken(TokenType::RPARENT)) params = parseFuncFParams();
-    if (!tryMatch(TokenType::RPARENT)) throw error("expected a ')'");
+    match(TokenType::RPARENT);
     block = parseBlock();
     return makeAstNode<AstFuncDef>(std::move(funcType), id, std::move(params), std::move(block));
 }
@@ -354,9 +351,7 @@ AstNodePtr Parser::parseCond() {
  */
 AstNodePtr Parser::parseLVal() {
     logAstNode("LVal");
-    if (!tryToken(TokenType::ID)) throw error("expected an identifier");
-    auto id = curToken().getValue();
-    nextToken();
+    auto id = parseID();
     AstNodePtrVector indices;
     while (tryMatch(TokenType::LSQBRA)) {
         auto exp = parseExp();
@@ -553,10 +548,8 @@ AstNodePtr Parser::parseLOrExp() {
  */
 AstNodePtr Parser::parseFuncCall() {
     logAstNode("FuncCall");
-    if (!tryToken(TokenType::ID)) return nullptr;
-    auto id = curToken().getValue();
-    nextToken();
-    if (!tryMatch(TokenType::LPARENT)) throw error("expected a '('");
+    auto id = parseID();
+    match(TokenType::LPARENT);
     AstNodePtrVector params;
     if (!tryToken(TokenType::RPARENT)) {
         // has parameters
@@ -569,6 +562,6 @@ AstNodePtr Parser::parseFuncCall() {
             params.push_back(std::move(exp));
         }
     }
-    if (!tryMatch(TokenType::RPARENT)) throw error("expected a ')'");
+    match(TokenType::RPARENT);
     return makeAstNode<AstFuncCall>(id, std::move(params));
 }
