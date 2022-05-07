@@ -51,8 +51,9 @@ ParsingError Parser::error(const std::string& msg) {
 }
 
 std::string Parser::parseID() {
-    if (!tryToken(TokenType::ID)) throw error("expected an identifier");
-    return curToken().getValue();
+    auto id = curToken().getValue();
+    match(TokenType::ID);
+    return id;
 }
 
 /**
