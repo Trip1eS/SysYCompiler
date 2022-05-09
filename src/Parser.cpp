@@ -1,6 +1,11 @@
 #include "Parser.hpp"
 #include <fstream>
 
+Parser::Parser(std::vector<Token> tokens)
+    : _tokens(tokens) {
+    _tokenIter = _tokens.begin();
+}
+
 void Parser::reset() {
     _astDepth = -1;
     _hasError = false;
@@ -56,6 +61,68 @@ ParsingError Parser::error(const std::string& msg) {
     std::cerr << "[Error] Type B at line " << lineno << " : " << msg << "\n";
     _hasError = true;
     return ParsingError(curToken().getLineno(), msg);
+}
+
+void Parser::logAstNode(std::string_view str) {
+    _astDepth++;
+    for (int i = 0; i < _astDepth * 2; i++) {
+        _astLogStream << ' ';
+    }
+    _astLogStream << str << " (" << curToken().getLineno() << ")\n";
+}
+
+void Parser::logAstLeaf(std::string_view str) {
+    _astDepth++;
+    for (int i = 0; i < _astDepth * 2; i++) {
+        _astLogStream << ' ';
+    }
+    _astLogStream << str << '\n';
+    _astDepth--;
+}
+
+void Parser::match(TokenType type, const std::string& msg) {
+    if (tryToken(type)) {
+        nextToken();
+    } else {
+        throw error(msg);
+    }
+}
+
+void Parser::match(TokenType type) {
+    if (type == TokenType::ID) {
+        match(type, "expected an identifier");
+    } else if (type == TokenType::INTCON) {
+        match(type, "expected a number");
+    } else {
+        match(type, "expected a '" + std::string(getTokenValue(type)) + "'");
+    }
+}
+
+bool Parser::tryMatch(TokenType type) {
+    if (tryToken(type)) {
+        nextToken();
+        return true;
+    } else {
+        return false;
+    }
+}
+
+void Parser::nextToken() {
+    logAstToken(curToken());
+    ++_tokenIter;
+}
+
+void Parser::prevToken() {
+    --_tokenIter;
+}
+
+bool Parser::findToken(TokenType target, TokenType until) {
+    auto tempIter = _tokenIter;
+    while (!tempIter->is(until)) {
+        if (tempIter->is(target)) return true;
+        ++tempIter;
+    }
+    return false;
 }
 
 std::string Parser::parseID() {
