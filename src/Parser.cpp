@@ -1,9 +1,15 @@
 #include "Parser.hpp"
 #include <fstream>
 
+void Parser::reset() {
+    _astDepth = -1;
+    _hasError = false;
+}
+
 void Parser::parse() {
+    reset();
     std::cout << "[Log] (Parser) Start parsing...\n";
-    while (_tokenIter != _tokens.end()) {
+    while (!eof()) {
         try {
             auto compUnit = parseCompUnit();
             if (compUnit) _compUnits.push_back(std::move(compUnit));
@@ -11,8 +17,11 @@ void Parser::parse() {
             nextToken();
         }
     }
-
-    std::cout << "[Log] (Parser) Parsing done\n";
+    if (_hasError) {
+        std::cout << "[Log] (Parser) Parsing done with errors.\n";
+    } else {
+        std::cout << "[Log] (Parser) Parsing done with success.\n";
+    }
 }
 
 void Parser::outputAst(const std::string& filePath) {
@@ -45,9 +54,8 @@ ParsingError Parser::error(const std::string& msg) {
         lineno = curToken().getLineno();
     _errors.emplace_back(lineno, msg);
     std::cerr << "[Error] Type B at line " << lineno << " : " << msg << "\n";
-    // nextToken();
+    _hasError = true;
     return ParsingError(curToken().getLineno(), msg);
-    // return nullptr;
 }
 
 std::string Parser::parseID() {
@@ -239,8 +247,14 @@ AstNodePtr Parser::parseBlock() {
     if (!tryMatch(TokenType::LBRACE)) throw error("expected a '{'");
     AstNodePtrVector items;
     while (!tryToken(TokenType::RBRACE)) {
-        items.emplace_back(std::move(parseBlockItem()));
+        try {
+            items.emplace_back(std::move(parseBlockItem()));
+        } catch (const ParsingError& err) {
+            int curLineno = curToken().getLineno();
+            while (curToken().getLineno() == curLineno) nextToken();
+        }
     }
+
     nextToken();
     return makeAstNode<AstBlock>(std::move(items));
 }

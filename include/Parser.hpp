@@ -64,8 +64,10 @@ class Parser {
     Parser(std::vector<Token> tokens) : _tokens(tokens) {
         _tokenIter = _tokens.begin();
     }
+    void reset();
     void parse();
     void outputAst(const std::string& filePath);
+    bool hasError() const { return _hasError; }
 
    private:
     ParsingError error(const std::string& msg);
@@ -161,6 +163,8 @@ class Parser {
         return false;
     }
 
+    bool eof() { return _tokenIter == _tokens.end(); }
+
 #pragma endregion
 
 #pragma region Parsing functions
@@ -206,4 +210,5 @@ class Parser {
 
     std::stringstream _astLogStream;
     int _astDepth = -1;
+    bool _hasError = false;
 };
