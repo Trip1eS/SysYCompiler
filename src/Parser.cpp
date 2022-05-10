@@ -35,7 +35,7 @@ void Parser::outputAst(const std::string& filePath) {
         return;
     }
     std::ofstream file(filePath, std::ios::out);
-    file << _astLogStream.str();
+    file << _astLogStream.rdbuf();
     std::cout << "[Log] (Parser) Written AST to file: " << filePath << "\n";
 }
 
