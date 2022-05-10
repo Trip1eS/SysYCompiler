@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <variant>
+#include "AstNodesVisitor.hpp"
 
 enum class FuncType {
     VOID,
@@ -38,15 +39,21 @@ enum class UnaryOp {
     SINGLE
 };
 
+#define AST_NODE \
+   public:       \
+    virtual void acceptVisitor(AstNodesVisitor &visitor) override { visitor.visit(*this); }
+
 class AstNodeBase {
    public:
     virtual ~AstNodeBase() = default;
+    virtual void acceptVisitor(AstNodesVisitor &visitor) = 0;
 };
 
 using AstNodePtr = std::unique_ptr<AstNodeBase>;
 using AstNodePtrVector = std::vector<AstNodePtr>;
 
 class AstCompUnit : public AstNodeBase {
+    AST_NODE
    public:
     AstCompUnit(AstNodePtr next) : _next(std::move(next)) {}
 
@@ -55,6 +62,7 @@ class AstCompUnit : public AstNodeBase {
 };
 
 class AstDecl : public AstNodeBase {
+    AST_NODE
    public:
     AstDecl(AstNodePtr decl)
         : _decl(std::move(decl)) {}
@@ -63,9 +71,10 @@ class AstDecl : public AstNodeBase {
     AstNodePtr _decl;
 };
 
-class AstConstDecl : public AstNodeBase {};
+// class AstConstDecl : public AstNodeBase {};
 
 class AstBType : public AstNodeBase {
+    AST_NODE
    public:
     AstBType(BType type)
         : _type(type) {}
@@ -74,10 +83,11 @@ class AstBType : public AstNodeBase {
     BType _type;
 };
 
-class AstConstDef : public AstNodeBase {};
-class AstConstInitVal : public AstNodeBase {};
+// class AstConstDef : public AstNodeBase {};
+// class AstConstInitVal : public AstNodeBase {};
 
 class AstVarDecl : public AstNodeBase {
+    AST_NODE
    public:
     AstVarDecl(AstNodePtr type, AstNodePtrVector varDefs)
         : _type(std::move(type)), _varDefs(std::move(varDefs)) {}
@@ -88,6 +98,7 @@ class AstVarDecl : public AstNodeBase {
 };
 
 class AstVarDef : public AstNodeBase {
+    AST_NODE
    public:
     AstVarDef(std::string id, AstNodePtrVector arrLens, AstNodePtr initVal)
         : _id(id), _arrLens(std::move(arrLens)), _initVal(std::move(initVal)) {}
@@ -99,6 +110,7 @@ class AstVarDef : public AstNodeBase {
 };
 
 class AstInitVal : public AstNodeBase {
+    AST_NODE
    public:
     AstInitVal(AstNodePtrVector initVals)
         : _initVals(std::move(initVals)) {}
@@ -111,6 +123,7 @@ class AstInitVal : public AstNodeBase {
 };
 
 class AstFuncDef : public AstNodeBase {
+    AST_NODE
    public:
     AstFuncDef(AstNodePtr funcType, std::string id, AstNodePtr params, AstNodePtr block)
         : _funcType(std::move(funcType)), _id(id), _params(std::move(params)), _block(std::move(block)) {}
@@ -121,6 +134,7 @@ class AstFuncDef : public AstNodeBase {
 };
 
 class AstFuncType : public AstNodeBase {
+    AST_NODE
    public:
     AstFuncType(FuncType type)
         : _type(type) {}
@@ -130,6 +144,7 @@ class AstFuncType : public AstNodeBase {
 };
 
 class AstFuncFParams : public AstNodeBase {
+    AST_NODE
    public:
     AstFuncFParams(AstNodePtrVector params)
         : _params(std::move(params)) {}
@@ -139,6 +154,7 @@ class AstFuncFParams : public AstNodeBase {
 };
 
 class AstFuncFParam : public AstNodeBase {
+    AST_NODE
    public:
     AstFuncFParam(AstNodePtr type, std::string id)
         : _type(std::move(type)), _id(id) {}
@@ -149,6 +165,7 @@ class AstFuncFParam : public AstNodeBase {
 };
 
 class AstBlock : public AstNodeBase {
+    AST_NODE
    public:
     AstBlock(AstNodePtrVector items)
         : _items(std::move(items)) {}
@@ -158,6 +175,7 @@ class AstBlock : public AstNodeBase {
 };
 
 class AstBlockItem : public AstNodeBase {
+    AST_NODE
    public:
     AstBlockItem(AstNodePtr declOrStmt)
         : _declOrStmt(std::move(declOrStmt)) {}
@@ -166,9 +184,8 @@ class AstBlockItem : public AstNodeBase {
     AstNodePtr _declOrStmt;
 };
 
-class AstStmt : public AstNodeBase {};
-
-class AstAssignStmt : public AstStmt {
+class AstAssignStmt : public AstNodeBase {
+    AST_NODE
    public:
     AstAssignStmt(AstNodePtr lVal, AstNodePtr exp)
         : _lVal(std::move(lVal)), _exp(std::move(exp)) {}
@@ -177,7 +194,8 @@ class AstAssignStmt : public AstStmt {
     AstNodePtr _lVal, _exp;
 };
 
-class AstExpStmt : public AstStmt {
+class AstExpStmt : public AstNodeBase {
+    AST_NODE
    public:
     AstExpStmt(AstNodePtr exp = nullptr)
         : _exp(std::move(exp)) {}
@@ -186,7 +204,8 @@ class AstExpStmt : public AstStmt {
     AstNodePtr _exp;
 };
 
-class AstBlockStmt : public AstStmt {
+class AstBlockStmt : public AstNodeBase {
+    AST_NODE
    public:
     AstBlockStmt(AstNodePtr block)
         : _block(std::move(block)) {}
@@ -195,7 +214,8 @@ class AstBlockStmt : public AstStmt {
     AstNodePtr _block;
 };
 
-class AstIfStmt : public AstStmt {
+class AstIfStmt : public AstNodeBase {
+    AST_NODE
    public:
     AstIfStmt(AstNodePtr cond, AstNodePtr stmt, AstNodePtr elseStmt = nullptr)
         : _cond(std::move(cond)), _stmt(std::move(stmt)), _elseStmt(std::move(elseStmt)) {}
@@ -204,7 +224,8 @@ class AstIfStmt : public AstStmt {
     AstNodePtr _cond, _stmt, _elseStmt;
 };
 
-class AstWhileStmt : public AstStmt {
+class AstWhileStmt : public AstNodeBase {
+    AST_NODE
    public:
     AstWhileStmt(AstNodePtr cond, AstNodePtr stmt)
         : _cond(std::move(cond)), _stmt(std::move(stmt)) {}
@@ -213,9 +234,16 @@ class AstWhileStmt : public AstStmt {
     AstNodePtr _cond, _stmt;
 };
 
-class AstBreakStmt : public AstStmt {};
-class AstContinueStmt : public AstStmt {};
-class AstReturnStmt : public AstStmt {
+class AstBreakStmt : public AstNodeBase {
+    AST_NODE
+};
+
+class AstContinueStmt : public AstNodeBase {
+    AST_NODE
+};
+
+class AstReturnStmt : public AstNodeBase {
+    AST_NODE
    public:
     AstReturnStmt(AstNodePtr exp = nullptr)
         : _exp(std::move(exp)) {}
@@ -225,6 +253,7 @@ class AstReturnStmt : public AstStmt {
 };
 
 class AstExp : public AstNodeBase {
+    AST_NODE
    public:
     AstExp(AstNodePtr addExp)
         : _addExp(std::move(addExp)) {}
@@ -234,6 +263,7 @@ class AstExp : public AstNodeBase {
 };
 
 class AstCond : public AstNodeBase {
+    AST_NODE
    public:
     AstCond(AstNodePtr lOrExp)
         : _lOrExp(std::move(lOrExp)) {}
@@ -243,6 +273,7 @@ class AstCond : public AstNodeBase {
 };
 
 class AstLVal : public AstNodeBase {
+    AST_NODE
    public:
     AstLVal(std::string id, AstNodePtrVector indices)
         : _id(id), _indices(std::move(indices)) {}
@@ -253,6 +284,7 @@ class AstLVal : public AstNodeBase {
 };
 
 class AstPrimaryExp : public AstNodeBase {
+    AST_NODE
    public:
     AstPrimaryExp(AstNodePtr exp)
         : _exp(std::move(exp)) {}
@@ -262,6 +294,7 @@ class AstPrimaryExp : public AstNodeBase {
 };
 
 class AstNumber : public AstNodeBase {
+    AST_NODE
    public:
     AstNumber(int val)
         : _val(val) {}
@@ -271,6 +304,7 @@ class AstNumber : public AstNodeBase {
 };
 
 class AstBinaryExp : public AstNodeBase {
+    AST_NODE
    public:
     AstBinaryExp(AstNodePtr lhs, BinaryOp op, AstNodePtr rhs)
         : _lhs(std::move(lhs)), _op(op), _rhs(std::move(rhs)) {}
@@ -288,6 +322,7 @@ class AstBinaryExp : public AstNodeBase {
 };
 
 class AstUnaryExp : public AstNodeBase {
+    AST_NODE
    public:
     AstUnaryExp(UnaryOp op, AstNodePtr exp)
         : _op(op), _exp(std::move(exp)) {}
@@ -300,6 +335,7 @@ class AstUnaryExp : public AstNodeBase {
 };
 
 class AstFuncRParams : public AstNodeBase {
+    AST_NODE
    public:
     AstFuncRParams(AstNodePtrVector exps)
         : _exps(std::move(exps)) {}
@@ -309,6 +345,7 @@ class AstFuncRParams : public AstNodeBase {
 };
 
 class AstFuncCall : public AstNodeBase {
+    AST_NODE
    public:
     AstFuncCall(std::string id, AstNodePtrVector params)
         : _id(id), _params(std::move(params)) {}
