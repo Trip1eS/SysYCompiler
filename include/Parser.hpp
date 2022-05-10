@@ -78,6 +78,8 @@ class Parser {
      */
     void parse();
 
+    AstNodePtrVector& getCompUnits() { return _compUnits; }
+
     /**
      * @brief Write AST structure to file
      */
