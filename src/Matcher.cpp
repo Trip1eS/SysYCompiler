@@ -1,4 +1,5 @@
 #include "Matcher.hpp"
+#include <algorithm>
 
 void StringMatcher::reset() {
     Matcher::reset();
