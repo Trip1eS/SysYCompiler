@@ -41,12 +41,12 @@ enum class UnaryOp {
 
 #define AST_NODE \
    public:       \
-    virtual void accept(AstNodesVisitor &visitor) override { visitor.visit(*this); }
+    virtual void accept(AstNodesVisitor &visitor) const override { visitor.visit(*this); }
 
 class AstNodeBase {
    public:
     virtual ~AstNodeBase() = default;
-    virtual void accept(AstNodesVisitor &visitor) = 0;
+    virtual void accept(AstNodesVisitor &visitor) const = 0;
 };
 
 using AstNodePtr = std::unique_ptr<AstNodeBase>;
