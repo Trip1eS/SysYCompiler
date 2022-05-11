@@ -56,6 +56,7 @@ class AstCompUnit : public AstNodeBase {
     AST_NODE
    public:
     AstCompUnit(AstNodePtr next) : _next(std::move(next)) {}
+    const AstNodePtr &next() const { return _next; }
 
    private:
     AstNodePtr _next;
@@ -66,6 +67,7 @@ class AstDecl : public AstNodeBase {
    public:
     AstDecl(AstNodePtr decl)
         : _decl(std::move(decl)) {}
+    const AstNodePtr &decl() const { return _decl; }
 
    private:
     AstNodePtr _decl;
@@ -78,6 +80,7 @@ class AstBType : public AstNodeBase {
    public:
     AstBType(BType type)
         : _type(type) {}
+    BType type() const { return _type; }
 
    private:
     BType _type;
@@ -91,6 +94,8 @@ class AstVarDecl : public AstNodeBase {
    public:
     AstVarDecl(AstNodePtr type, AstNodePtrVector varDefs)
         : _type(std::move(type)), _varDefs(std::move(varDefs)) {}
+    const AstNodePtr &type() { return _type; }
+    const AstNodePtrVector &varDefs() { return _varDefs; }
 
    private:
     AstNodePtr _type;
@@ -102,6 +107,9 @@ class AstVarDef : public AstNodeBase {
    public:
     AstVarDef(std::string id, AstNodePtrVector arrLens, AstNodePtr initVal)
         : _id(id), _arrLens(std::move(arrLens)), _initVal(std::move(initVal)) {}
+    const std::string &id() const { return _id; }
+    const AstNodePtrVector &arrLens() const { return _arrLens; }
+    const AstNodePtr &initVal() const { return _initVal; }
 
    private:
     std::string _id;
@@ -117,6 +125,9 @@ class AstInitVal : public AstNodeBase {
     AstInitVal(AstNodePtr exp)
         : _exp(std::move(exp)) {}
 
+    const AstNodePtrVector &initVals() { return _initVals; }
+    const AstNodePtr &exp() const { return _exp; }
+
    private:
     AstNodePtrVector _initVals;
     AstNodePtr _exp;
@@ -127,6 +138,10 @@ class AstFuncDef : public AstNodeBase {
    public:
     AstFuncDef(AstNodePtr funcType, std::string id, AstNodePtr params, AstNodePtr block)
         : _funcType(std::move(funcType)), _id(id), _params(std::move(params)), _block(std::move(block)) {}
+    const AstNodePtr &funcType() const { return _funcType; }
+    const AstNodePtr &params() const { return _params; }
+    const AstNodePtr &block() const { return _block; }
+    const std::string &id() const { return _id; }
 
    private:
     AstNodePtr _funcType, _params, _block;
@@ -138,6 +153,7 @@ class AstFuncType : public AstNodeBase {
    public:
     AstFuncType(FuncType type)
         : _type(type) {}
+    FuncType type() const { return _type; }
 
    private:
     FuncType _type;
@@ -148,6 +164,7 @@ class AstFuncFParams : public AstNodeBase {
    public:
     AstFuncFParams(AstNodePtrVector params)
         : _params(std::move(params)) {}
+    const AstNodePtrVector &params() const { return _params; }
 
    private:
     AstNodePtrVector _params;
@@ -158,6 +175,8 @@ class AstFuncFParam : public AstNodeBase {
    public:
     AstFuncFParam(AstNodePtr type, std::string id)
         : _type(std::move(type)), _id(id) {}
+    const AstNodePtr &type() const { return _type; }
+    const std::string &id() const { return _id; }
 
    private:
     AstNodePtr _type;
@@ -169,6 +188,7 @@ class AstBlock : public AstNodeBase {
    public:
     AstBlock(AstNodePtrVector items)
         : _items(std::move(items)) {}
+    const AstNodePtrVector &items() const { return _items; }
 
    private:
     AstNodePtrVector _items;
@@ -179,6 +199,7 @@ class AstBlockItem : public AstNodeBase {
    public:
     AstBlockItem(AstNodePtr declOrStmt)
         : _declOrStmt(std::move(declOrStmt)) {}
+    const AstNodePtr &declOrStmt() const { return _declOrStmt; }
 
    private:
     AstNodePtr _declOrStmt;
@@ -189,6 +210,8 @@ class AstAssignStmt : public AstNodeBase {
    public:
     AstAssignStmt(AstNodePtr lVal, AstNodePtr exp)
         : _lVal(std::move(lVal)), _exp(std::move(exp)) {}
+    const AstNodePtr &lVal() const { return _lVal; }
+    const AstNodePtr &exp() const { return _exp; }
 
    private:
     AstNodePtr _lVal, _exp;
@@ -199,6 +222,7 @@ class AstExpStmt : public AstNodeBase {
    public:
     AstExpStmt(AstNodePtr exp = nullptr)
         : _exp(std::move(exp)) {}
+    const AstNodePtr &exp() const { return _exp; }
 
    private:
     AstNodePtr _exp;
@@ -209,6 +233,7 @@ class AstBlockStmt : public AstNodeBase {
    public:
     AstBlockStmt(AstNodePtr block)
         : _block(std::move(block)) {}
+    const AstNodePtr &block() const { return _block; }
 
    private:
     AstNodePtr _block;
@@ -219,6 +244,9 @@ class AstIfStmt : public AstNodeBase {
    public:
     AstIfStmt(AstNodePtr cond, AstNodePtr stmt, AstNodePtr elseStmt = nullptr)
         : _cond(std::move(cond)), _stmt(std::move(stmt)), _elseStmt(std::move(elseStmt)) {}
+    const AstNodePtr &cond() const { return _cond; }
+    const AstNodePtr &stmt() const { return _stmt; }
+    const AstNodePtr &elseStmt() const { return _elseStmt; }
 
    private:
     AstNodePtr _cond, _stmt, _elseStmt;
@@ -229,6 +257,8 @@ class AstWhileStmt : public AstNodeBase {
    public:
     AstWhileStmt(AstNodePtr cond, AstNodePtr stmt)
         : _cond(std::move(cond)), _stmt(std::move(stmt)) {}
+    const AstNodePtr &cond() const { return _cond; }
+    const AstNodePtr &stmt() const { return _stmt; }
 
    private:
     AstNodePtr _cond, _stmt;
@@ -247,6 +277,7 @@ class AstReturnStmt : public AstNodeBase {
    public:
     AstReturnStmt(AstNodePtr exp = nullptr)
         : _exp(std::move(exp)) {}
+    const AstNodePtr &exp() const { return _exp; }
 
    private:
     AstNodePtr _exp;
@@ -257,6 +288,7 @@ class AstExp : public AstNodeBase {
    public:
     AstExp(AstNodePtr addExp)
         : _addExp(std::move(addExp)) {}
+    const AstNodePtr &addExp() const { return _addExp; }
 
    private:
     AstNodePtr _addExp;
@@ -267,6 +299,7 @@ class AstCond : public AstNodeBase {
    public:
     AstCond(AstNodePtr lOrExp)
         : _lOrExp(std::move(lOrExp)) {}
+    const AstNodePtr &lOrExp() const { return _lOrExp; }
 
    private:
     AstNodePtr _lOrExp;
@@ -277,6 +310,8 @@ class AstLVal : public AstNodeBase {
    public:
     AstLVal(std::string id, AstNodePtrVector indices)
         : _id(id), _indices(std::move(indices)) {}
+    const std::string &id() { return _id; }
+    const AstNodePtrVector &indices() { return _indices; }
 
    private:
     std::string _id;
@@ -288,6 +323,7 @@ class AstPrimaryExp : public AstNodeBase {
    public:
     AstPrimaryExp(AstNodePtr exp)
         : _exp(std::move(exp)) {}
+    const AstNodePtr &exp() const { return _exp; }
 
    private:
     AstNodePtr _exp;
@@ -298,6 +334,7 @@ class AstNumber : public AstNodeBase {
    public:
     AstNumber(int val)
         : _val(val) {}
+    int val() const { return _val; }
 
    private:
     int _val;
@@ -311,10 +348,9 @@ class AstBinaryExp : public AstNodeBase {
     AstBinaryExp(AstNodePtr lhs)
         : _lhs(std::move(lhs)), _op(BinaryOp::SINGLE) {}
     AstBinaryExp() = default;
-
-    // void setLhs(AstNodePtr lhs) { _lhs = std::move(lhs); }
-    // void setRhs(AstNodePtr rhs) { _rhs = std::move(rhs); }
-    // void setOp(BinaryOp op) { _op = op; }
+    const AstNodePtr &lhs() const { return _lhs; }
+    const AstNodePtr &rhs() const { return _rhs; }
+    BinaryOp op() const { return _op; }
 
    private:
     AstNodePtr _lhs, _rhs;
@@ -328,6 +364,8 @@ class AstUnaryExp : public AstNodeBase {
         : _op(op), _exp(std::move(exp)) {}
     AstUnaryExp(AstNodePtr exp)
         : _op(UnaryOp::SINGLE), _exp(std::move(exp)) {}
+    const AstNodePtr &exp() const { return _exp; }
+    UnaryOp op() const { return _op; }
 
    private:
     AstNodePtr _exp;
@@ -339,6 +377,7 @@ class AstFuncRParams : public AstNodeBase {
    public:
     AstFuncRParams(AstNodePtrVector exps)
         : _exps(std::move(exps)) {}
+    const AstNodePtrVector &exps() const { return _exps; }
 
    private:
     AstNodePtrVector _exps;
@@ -349,6 +388,8 @@ class AstFuncCall : public AstNodeBase {
    public:
     AstFuncCall(std::string id, AstNodePtrVector params)
         : _id(id), _params(std::move(params)) {}
+    const std::string &id() const { return _id; }
+    const AstNodePtrVector &params() const { return _params; }
 
    private:
     std::string _id;
