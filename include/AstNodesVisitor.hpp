@@ -1,39 +1,10 @@
 #pragma once
 #include <any>
+#include "AstNodesDecls.hpp"
 
 /**
  * @brief Visitor pattern. ref: https://en.wikipedia.org/wiki/Visitor_pattern
  */
-
-class AstCompUnit;
-class AstDecl;
-class AstBType;
-class AstVarDecl;
-class AstVarDef;
-class AstInitVal;
-class AstFuncDef;
-class AstFuncType;
-class AstFuncFParams;
-class AstFuncFParam;
-class AstBlock;
-class AstBlockItem;
-class AstAssignStmt;
-class AstExpStmt;
-class AstBlockStmt;
-class AstIfStmt;
-class AstWhileStmt;
-class AstBreakStmt;
-class AstContinueStmt;
-class AstReturnStmt;
-class AstExp;
-class AstCond;
-class AstLVal;
-class AstPrimaryExp;
-class AstNumber;
-class AstBinaryExp;
-class AstUnaryExp;
-class AstFuncRParams;
-class AstFuncCall;
 
 /**
  * @brief Base class for visitors of AstNodes
