@@ -207,37 +207,37 @@ class Parser {
 
 #pragma region Parsing functions
     std::string parseID();
-    AstNodePtr parseCompUnit();
-    AstNodePtr parseDecl();
+    AstCompUnitPtr parseCompUnit();
+    AstDeclPtr parseDecl();
     AstNodePtr parseConstDecl();
-    AstNodePtr parseBType();
+    AstBTypePtr parseBType();
     AstNodePtr parseConstDef();
     AstNodePtr parseConstInitVal();
-    AstNodePtr parseVarDecl();
-    AstNodePtr parseVarDef();
-    AstNodePtr parseInitVal();
-    AstNodePtr parseFuncDef();
-    AstNodePtr parseFuncType();
-    AstNodePtr parseFuncFParams();
-    AstNodePtr parseFuncFParam();
-    AstNodePtr parseBlock();
-    AstNodePtr parseBlockItem();
+    AstVarDeclPtr parseVarDecl();
+    AstVarDefPtr parseVarDef();
+    AstInitValPtr parseInitVal();
+    AstFuncDefPtr parseFuncDef();
+    AstFuncTypePtr parseFuncType();
+    AstFuncFParamsPtr parseFuncFParams();
+    AstFuncFParamPtr parseFuncFParam();
+    AstBlockPtr parseBlock();
+    AstBlockItemPtr parseBlockItem();
     AstNodePtr parseStmt();
-    AstNodePtr parseExp();
+    AstExpPtr parseExp();
     AstNodePtr parseConstExp();
-    AstNodePtr parseCond();
-    AstNodePtr parseLVal();
-    AstNodePtr parsePrimaryExp();
-    AstNodePtr parseNumber();
-    AstNodePtr parseUnaryExp();
-    AstNodePtr parseFuncRParams();
-    AstNodePtr parseMulExp();
-    AstNodePtr parseAddExp();
-    AstNodePtr parseRelExp();
-    AstNodePtr parseEqExp();
-    AstNodePtr parseLAndExp();
-    AstNodePtr parseLOrExp();
-    AstNodePtr parseFuncCall();
+    AstCondPtr parseCond();
+    AstLValPtr parseLVal();
+    AstPrimaryExpPtr parsePrimaryExp();
+    AstNumberPtr parseNumber();
+    AstUnaryExpPtr parseUnaryExp();
+    AstFuncRParamsPtr parseFuncRParams();
+    AstBinaryExpPtr parseMulExp();
+    AstBinaryExpPtr parseAddExp();
+    AstBinaryExpPtr parseRelExp();
+    AstBinaryExpPtr parseEqExp();
+    AstBinaryExpPtr parseLAndExp();
+    AstBinaryExpPtr parseLOrExp();
+    AstFuncCallPtr parseFuncCall();
 #pragma endregion
 
    private:

@@ -2,7 +2,7 @@
 #include <fstream>
 
 Parser::Parser(std::vector<Token> tokens)
-    : _tokens(tokens) {
+        : _tokens(tokens) {
     _tokenIter = _tokens.begin();
 }
 
@@ -18,7 +18,7 @@ void Parser::parse() {
         try {
             auto compUnit = parseCompUnit();
             if (compUnit) _compUnits.push_back(std::move(compUnit));
-        } catch (const ParsingError& err) {
+        } catch (const ParsingError &err) {
             nextToken();
         }
     }
@@ -29,7 +29,7 @@ void Parser::parse() {
     }
 }
 
-void Parser::outputAst(const std::string& filePath) {
+void Parser::outputAst(const std::string &filePath) {
     if (_compUnits.empty()) {
         std::cerr << "[Error] No CompUnit avaliable\n";
         return;
@@ -39,7 +39,7 @@ void Parser::outputAst(const std::string& filePath) {
     std::cout << "[Log] (Parser) Written AST to file: " << filePath << "\n";
 }
 
-void Parser::logAstToken(const Token& token) {
+void Parser::logAstToken(const Token &token) {
     std::stringstream log;
     if (token.is(TokenType::ID) || token.is(TokenType::INTCON)) {
         log << token.getName() << ": " << token.getValue();
@@ -51,7 +51,7 @@ void Parser::logAstToken(const Token& token) {
     logAstLeaf(log.str());
 }
 
-ParsingError Parser::error(const std::string& msg) {
+ParsingError Parser::error(const std::string &msg) {
     int lineno;
     if (_tokenIter == _tokens.end())
         lineno = _tokens.back().getLineno();
@@ -80,7 +80,7 @@ void Parser::logAstLeaf(std::string_view str) {
     _astDepth--;
 }
 
-void Parser::match(TokenType type, const std::string& msg) {
+void Parser::match(TokenType type, const std::string &msg) {
     if (tryToken(type)) {
         nextToken();
     } else {
@@ -134,7 +134,7 @@ std::string Parser::parseID() {
 /**
  * CompUnit -> Decl | FuncDef
  */
-AstNodePtr Parser::parseCompUnit() {
+AstCompUnitPtr Parser::parseCompUnit() {
     logAstNode("CompUnit");
     if (tryToken(TokenType::CONST)) {
         // -> ConstDecl
@@ -155,7 +155,7 @@ AstNodePtr Parser::parseCompUnit() {
 /**
  * Decl -> ConstDecl | VarDecl
  */
-AstNodePtr Parser::parseDecl() {
+AstDeclPtr Parser::parseDecl() {
     logAstNode("Decl");
     if (tryToken(TokenType::CONST))
         return makeAstNode<AstDecl>(std::move(parseConstDecl()));
@@ -170,7 +170,7 @@ AstNodePtr Parser::parseConstDecl() {
 /**
  * BType -> 'int'
  */
-AstNodePtr Parser::parseBType() {
+AstBTypePtr Parser::parseBType() {
     logAstNode("BType");
     if (tryMatch(TokenType::INTTK)) {
         return makeAstNode<AstBType>(BType::INT);
@@ -190,9 +190,9 @@ AstNodePtr Parser::parseConstInitVal() {
 /**
  * VarDecl -> BType VarDef {',' VarDef} ';'
  */
-AstNodePtr Parser::parseVarDecl() {
+AstVarDeclPtr Parser::parseVarDecl() {
     logAstNode("VarDecl");
-    AstNodePtrVector defs;
+    std::vector<AstVarDefPtr> defs;
     auto type = parseBType();
     while (true) {
         auto def = parseVarDef();
@@ -207,10 +207,10 @@ AstNodePtr Parser::parseVarDecl() {
  * VarDef -> Ident {'[' ConstExp ']'}
  *           | Ident {'[' ConstExp ']'} '=' InitVal
  */
-AstNodePtr Parser::parseVarDef() {
+AstVarDefPtr Parser::parseVarDef() {
     logAstNode("VarDef");
-    AstNodePtrVector arrLens;
-    AstNodePtr initVal;
+    std::vector<AstExpPtr> arrLens;
+    AstInitValPtr initVal;
     auto id = parseID();
     while (true) {
         if (tryMatch(TokenType::LSQBRA)) {
@@ -231,11 +231,11 @@ AstNodePtr Parser::parseVarDef() {
 /**
  * InitVal -> Exp | '{' [InitVal { ',' InitVal }] '}'
  */
-AstNodePtr Parser::parseInitVal() {
+AstInitValPtr Parser::parseInitVal() {
     logAstNode("InitVal");
     if (tryMatch(TokenType::LBRACE)) {
         // -> '{' [InitVal { ',' InitVal }] '}'
-        AstNodePtrVector initVals;
+        std::vector<AstInitValPtr> initVals;
         auto initVal = parseInitVal();
         initVals.push_back(std::move(initVal));
         while (tryToken(TokenType::COMMA)) {
@@ -255,24 +255,22 @@ AstNodePtr Parser::parseInitVal() {
 /**
  * FuncDef -> FuncType Ident '(' [FuncFParams] ')' Block
  */
-AstNodePtr Parser::parseFuncDef() {
+AstFuncDefPtr Parser::parseFuncDef() {
     logAstNode("FuncDef");
-    AstNodePtr funcType;
-    std::string id;
-    AstNodePtr params, block;
-    funcType = parseFuncType();
-    id = parseID();
+    auto funcType = parseFuncType();
+    auto id = parseID();
     match(TokenType::LPARENT);
+    AstFuncFParamsPtr params;
     if (!tryToken(TokenType::RPARENT)) params = parseFuncFParams();
     match(TokenType::RPARENT);
-    block = parseBlock();
+    auto block = parseBlock();
     return makeAstNode<AstFuncDef>(std::move(funcType), id, std::move(params), std::move(block));
 }
 
 /**
  * FuncType -> 'void' | 'int'
  */
-AstNodePtr Parser::parseFuncType() {
+AstFuncTypePtr Parser::parseFuncType() {
     logAstNode("FuncType");
     if (tryMatch(TokenType::INTTK)) {
         return makeAstNode<AstFuncType>(FuncType::INT);
@@ -286,9 +284,9 @@ AstNodePtr Parser::parseFuncType() {
 /**
  * FuncFParams -> FuncFParam { ',' FuncFParam }
  */
-AstNodePtr Parser::parseFuncFParams() {
+AstFuncFParamsPtr Parser::parseFuncFParams() {
     logAstNode("FuncFParams");
-    AstNodePtrVector params;
+    std::vector<AstFuncFParamPtr> params;
     do {
         params.emplace_back(std::move(parseFuncFParam()));
     } while (tryMatch(TokenType::COMMA));
@@ -298,7 +296,7 @@ AstNodePtr Parser::parseFuncFParams() {
 /**
  * FuncFParam -> BType Ident [ '[' ']' { '[' Exp ']' } ]
  */
-AstNodePtr Parser::parseFuncFParam() {
+AstFuncFParamPtr Parser::parseFuncFParam() {
     // TODO: array support
     logAstNode("FuncFParam");
     auto type = parseBType();
@@ -309,14 +307,14 @@ AstNodePtr Parser::parseFuncFParam() {
 /**
  * Block -> '{' {BlockItem} '}'
  */
-AstNodePtr Parser::parseBlock() {
+AstBlockPtr Parser::parseBlock() {
     logAstNode("Block");
     if (!tryMatch(TokenType::LBRACE)) throw error("expected a '{'");
     AstNodePtrVector items;
     while (!tryToken(TokenType::RBRACE)) {
         try {
             items.emplace_back(std::move(parseBlockItem()));
-        } catch (const ParsingError& err) {
+        } catch (const ParsingError &err) {
             int curLineno = curToken().getLineno();
             while (curToken().getLineno() == curLineno) nextToken();
         }
@@ -329,7 +327,7 @@ AstNodePtr Parser::parseBlock() {
 /**
  * BlockItem -> Decl | Stmt
  */
-AstNodePtr Parser::parseBlockItem() {
+AstBlockItemPtr Parser::parseBlockItem() {
     logAstNode("BlockItem");
     AstNodePtr item;
     if (tryToken(TokenType::CONST, TokenType::INTTK)) {
@@ -411,7 +409,7 @@ AstNodePtr Parser::parseStmt() {
 /**
  * Exp -> AddExp
  */
-AstNodePtr Parser::parseExp() {
+AstExpPtr Parser::parseExp() {
     logAstNode("Exp");
     auto addExp = parseAddExp();
     return makeAstNode<AstExp>(std::move(addExp));
@@ -421,7 +419,7 @@ AstNodePtr Parser::parseConstExp() {
     return nullptr;
 }
 
-AstNodePtr Parser::parseCond() {
+AstCondPtr Parser::parseCond() {
     logAstNode("Cond");
     auto lOrExp = parseLOrExp();
     return makeAstNode<AstCond>(std::move(lOrExp));
@@ -430,7 +428,7 @@ AstNodePtr Parser::parseCond() {
 /**
  * LVal -> Ident {'[' Exp ']'}
  */
-AstNodePtr Parser::parseLVal() {
+AstLValPtr Parser::parseLVal() {
     logAstNode("LVal");
     auto id = parseID();
     AstNodePtrVector indices;
@@ -445,7 +443,7 @@ AstNodePtr Parser::parseLVal() {
 /**
  * PrimaryExp -> '(' Exp ')' | LVal | Number
  */
-AstNodePtr Parser::parsePrimaryExp() {
+AstPrimaryExpPtr Parser::parsePrimaryExp() {
     logAstNode("PrimaryExp");
     if (tryToken(TokenType::LPARENT)) {
         // -> '(' Exp ')'
@@ -461,7 +459,7 @@ AstNodePtr Parser::parsePrimaryExp() {
     return nullptr;
 }
 
-AstNodePtr Parser::parseNumber() {
+AstNumberPtr Parser::parseNumber() {
     logAstNode("Number");
     if (tryToken(TokenType::INTCON)) {
         auto val = std::stoi(curToken().getValue());
@@ -476,7 +474,7 @@ AstNodePtr Parser::parseNumber() {
  * UnaryExp -> PrimaryExp
  *          | FuncCall | UnaryOp UnaryExp
  */
-AstNodePtr Parser::parseUnaryExp() {
+AstUnaryExpPtr Parser::parseUnaryExp() {
     logAstNode("UnaryExp");
     if (tryTokenAhead(1, TokenType::LPARENT)) {
         // -> FuncCall
@@ -500,17 +498,16 @@ AstNodePtr Parser::parseUnaryExp() {
         // -> PrimaryExp
         return makeAstNode<AstUnaryExp>(std::move(parsePrimaryExp()));
     }
-    throw error("expected an expression");
 }
 
-AstNodePtr Parser::parseFuncRParams() {
+AstFuncRParamsPtr Parser::parseFuncRParams() {
     return nullptr;
 }
 
 /**
  * MulExp -> UnaryExp | UnaryExp ('*' | '/' | '%') MulExp
  */
-AstNodePtr Parser::parseMulExp() {
+AstBinaryExpPtr Parser::parseMulExp() {
     logAstNode("MulExp");
     auto lhs = parseUnaryExp();
     BinaryOp op;
@@ -520,7 +517,6 @@ AstNodePtr Parser::parseMulExp() {
         return makeAstNode<AstBinaryExp>(std::move(lhs));
     }
     while (tryToken(TokenType::MUL, TokenType::DIV, TokenType::MOD)) {
-        BinaryOp op;
         if (tryToken(TokenType::MUL)) {
             op = BinaryOp::MUL;
         } else if (tryToken(TokenType::DIV)) {
@@ -538,7 +534,7 @@ AstNodePtr Parser::parseMulExp() {
 /**
  * AddExp -> MulExp | MulExp ('+' | '-') AddExp
  */
-AstNodePtr Parser::parseAddExp() {
+AstBinaryExpPtr Parser::parseAddExp() {
     logAstNode("AddExp");
     auto lhs = parseMulExp();
     BinaryOp op;
@@ -561,11 +557,12 @@ AstNodePtr Parser::parseAddExp() {
 /**
  * RelExp ->  AddExp | AddExp ('<' | '>' | '<=' | '>=') RelExp
  */
-AstNodePtr Parser::parseRelExp() {
+AstBinaryExpPtr Parser::parseRelExp() {
     logAstNode("RelExp");
     auto lhs = parseAddExp();
     BinaryOp op;
-    if (!tryToken(TokenType::LESS, TokenType::GREATER, TokenType::LESSEQ, TokenType::GRETEREQ)) return makeAstNode<AstBinaryExp>(std::move(lhs));
+    if (!tryToken(TokenType::LESS, TokenType::GREATER, TokenType::LESSEQ, TokenType::GRETEREQ))
+        return makeAstNode<AstBinaryExp>(std::move(lhs));
     if (tryToken(TokenType::LESS)) {
         op = BinaryOp::LESS;
     } else if (tryToken(TokenType::GREATER)) {
@@ -583,7 +580,7 @@ AstNodePtr Parser::parseRelExp() {
 /**
  * EaExp -> RelExp | RelExp ('==' | '!=') EqExp
  */
-AstNodePtr Parser::parseEqExp() {
+AstBinaryExpPtr Parser::parseEqExp() {
     logAstNode("EqExp");
     auto lhs = parseRelExp();
     BinaryOp op;
@@ -601,7 +598,7 @@ AstNodePtr Parser::parseEqExp() {
 /**
  * LAndExp -> EqExp | EqExp '&&' LAndExp
  */
-AstNodePtr Parser::parseLAndExp() {
+AstBinaryExpPtr Parser::parseLAndExp() {
     logAstNode("LAndExp");
     auto lhs = parseEqExp();
     BinaryOp op = BinaryOp::LOGICAND;
@@ -614,7 +611,7 @@ AstNodePtr Parser::parseLAndExp() {
 /**
  * LOrExp -> LAndExp | LAndExp '||' LOrExp
  */
-AstNodePtr Parser::parseLOrExp() {
+AstBinaryExpPtr Parser::parseLOrExp() {
     logAstNode("LOrExp");
     auto lhs = parseLAndExp();
     BinaryOp op = BinaryOp::LOGICOR;
@@ -627,7 +624,7 @@ AstNodePtr Parser::parseLOrExp() {
 /**
  * FuncCall -> Ident '(' [Exp {',' Exp}] ')'
  */
-AstNodePtr Parser::parseFuncCall() {
+AstFuncCallPtr Parser::parseFuncCall() {
     logAstNode("FuncCall");
     auto id = parseID();
     match(TokenType::LPARENT);
@@ -638,7 +635,7 @@ AstNodePtr Parser::parseFuncCall() {
         if (!exp) return nullptr;
         params.push_back(std::move(exp));
         while (tryMatch(TokenType::COMMA)) {
-            auto exp = parseExp();
+            exp = parseExp();
             if (!exp) return nullptr;
             params.push_back(std::move(exp));
         }
