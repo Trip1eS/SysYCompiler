@@ -71,11 +71,11 @@ class AstNodesVisitor {
     virtual void visit(const AstFuncCall&) = 0;
 
     template <class RetT>
-    RetT& result() { return std::any_cast<RetT>(_ret); }
+    RetT& result() { return std::any_cast<RetT&>(_ret); }
 
     template <class RetT, class AstT>
     RetT& visitRet(const AstT& node) {
-        visit(node);
+        node->accept(*this);
         return result<RetT>();
     }
 
