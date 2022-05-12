@@ -225,13 +225,14 @@ class AstBlockItem : public AstNodeBase {
 class AstAssignStmt : public AstNodeBase {
     AST_NODE
    public:
-    AstAssignStmt(AstNodePtr lVal, AstNodePtr exp)
+    AstAssignStmt(AstLValPtr lVal, AstNodePtr exp)
         : _lVal(std::move(lVal)), _exp(std::move(exp)) {}
     const auto &lVal() const { return _lVal; }
     const auto &exp() const { return _exp; }
 
    private:
-    AstNodePtr _lVal, _exp;
+    AstLValPtr _lVal;
+    AstNodePtr _exp;
 };
 
 class AstExpStmt : public AstNodeBase {
