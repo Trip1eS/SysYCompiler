@@ -100,8 +100,8 @@ class AstVarDecl : public AstNodeBase {
                std::vector<AstVarDefPtr> varDefs)
         : _type(std::move(type)), _varDefs(std::move(varDefs)) {}
 
-    const auto &type() { return _type; }
-    const auto &varDefs() { return _varDefs; }
+    const auto &type() const { return _type; }
+    const auto &varDefs() const { return _varDefs; }
 
    private:
     AstBTypePtr _type;
