@@ -40,18 +40,4 @@ class AstNodesVisitor {
     virtual void visit(const AstUnaryExp&) = 0;
     virtual void visit(const AstFuncRParams&) = 0;
     virtual void visit(const AstFuncCall&) = 0;
-
-    void ret(const std::any& ret) { _ret = ret; }
-
-    template <class RetT>
-    RetT& result() { return std::any_cast<RetT&>(_ret); }
-
-    template <class RetT, class AstT>
-    RetT& visitRet(const AstT& node) {
-        node.accept(*this);
-        return result<RetT>();
-    }
-
-   private:
-    std::any _ret;
 };
