@@ -18,52 +18,67 @@
 #include <llvm/Transforms/InstCombine/InstCombine.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Transforms/Utils.h>
+#include <map>
+#include <memory>
 
 class IrGenerator : public AstNodesVisitor {
-   public:
-    IrGenerator(AstNodePtrVector compUnits)
-        : _compUnits(std::move(compUnits)),
-          _context(),
-          _builder(_context) {}
+public:
+    explicit IrGenerator(AstNodePtrVector compUnits);
 
     void codegen();
 
-   public:  // visitor methods
-    virtual void visit(const AstCompUnit&) override;
-    virtual void visit(const AstDecl&) override;
-    virtual void visit(const AstBType&) override;
-    virtual void visit(const AstVarDecl&) override;
-    virtual void visit(const AstVarDef&) override;
-    virtual void visit(const AstInitVal&) override;
-    virtual void visit(const AstFuncDef&) override;
-    virtual void visit(const AstFuncType&) override;
-    virtual void visit(const AstFuncFParams&) override;
-    virtual void visit(const AstFuncFParam&) override;
-    virtual void visit(const AstBlock&) override;
-    virtual void visit(const AstBlockItem&) override;
-    virtual void visit(const AstAssignStmt&) override;
-    virtual void visit(const AstExpStmt&) override;
-    virtual void visit(const AstBlockStmt&) override;
-    virtual void visit(const AstIfStmt&) override;
-    virtual void visit(const AstWhileStmt&) override;
-    virtual void visit(const AstBreakStmt&) override;
-    virtual void visit(const AstContinueStmt&) override;
-    virtual void visit(const AstReturnStmt&) override;
-    virtual void visit(const AstExp&) override;
-    virtual void visit(const AstCond&) override;
-    virtual void visit(const AstLVal&) override;
-    virtual void visit(const AstPrimaryExp&) override;
-    virtual void visit(const AstNumber&) override;
-    virtual void visit(const AstBinaryExp&) override;
-    virtual void visit(const AstUnaryExp&) override;
-    virtual void visit(const AstFuncRParams&) override;
-    virtual void visit(const AstFuncCall&) override;
+    void printModule() const {
+        _module->print(llvm::outs(), nullptr);
+    }
 
-   private:
+public: // visitor methods
+    void visit(const AstCompUnit&) override;
+    void visit(const AstDecl&) override;
+    void visit(const AstBType&) override;
+    void visit(const AstVarDecl&) override;
+    void visit(const AstVarDef&) override;
+    void visit(const AstInitVal&) override;
+    void visit(const AstFuncDef&) override;
+    void visit(const AstFuncType&) override;
+    void visit(const AstFuncFParams&) override;
+    void visit(const AstFuncFParam&) override;
+    void visit(const AstBlock&) override;
+    void visit(const AstBlockItem&) override;
+    void visit(const AstAssignStmt&) override;
+    void visit(const AstExpStmt&) override;
+    void visit(const AstBlockStmt&) override;
+    void visit(const AstIfStmt&) override;
+    void visit(const AstWhileStmt&) override;
+    void visit(const AstBreakStmt&) override;
+    void visit(const AstContinueStmt&) override;
+    void visit(const AstReturnStmt&) override;
+    void visit(const AstExp&) override;
+    void visit(const AstCond&) override;
+    void visit(const AstLVal&) override;
+    void visit(const AstPrimaryExp&) override;
+    void visit(const AstNumber&) override;
+    void visit(const AstBinaryExp&) override;
+    void visit(const AstUnaryExp&) override;
+    void visit(const AstFuncRParams&) override;
+    void visit(const AstFuncCall&) override;
+
+private:
+    template <class AstT>
+    llvm::Value* codegen(const AstT& node) {
+        node.accept(*this);
+        return _ret;
+    }
+
+    void ret(llvm::Value* val) { _ret = val; }
+    llvm::AllocaInst* createEntryBlockAlloca(llvm::Function* func,
+                                             const std::string& varName) const;
+
+private:
     AstNodePtrVector _compUnits;
-    llvm::LLVMContext _context;
-    llvm::IRBuilder<> _builder;
+    std::unique_ptr<llvm::LLVMContext> _context;
+    std::unique_ptr<llvm::IRBuilder<>> _builder;
     std::unique_ptr<llvm::Module> _module;
     std::map<std::string, llvm::AllocaInst*> _namedValues;
     std::unique_ptr<llvm::legacy::FunctionPassManager> _fpm;
+    llvm::Value* _ret;
 };
