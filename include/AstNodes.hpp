@@ -328,8 +328,8 @@ class AstLVal : public AstNodeBase {
    public:
     AstLVal(std::string id, AstNodePtrVector indices)
         : _id(id), _indices(std::move(indices)) {}
-    const auto &id() { return _id; }
-    const auto &indices() { return _indices; }
+    const auto &id() const { return _id; }
+    const auto &indices() const { return _indices; }
 
    private:
     std::string _id;
