@@ -9,7 +9,7 @@ IrGenerator::IrGenerator(AstNodePtrVector compUnits)
       _ret(nullptr) {
 }
 
-llvm::AllocaInst* IrGenerator::createEntryBlockAlloca(llvm::Function* func, const std::string& varName) const {
+llvm::AllocaInst* IrGenerator::createEntryBlockAlloca(llvm::Function* func, const std::string& varName = "") const {
     llvm::IRBuilder<> tmpB(&func->getEntryBlock(),
                            func->getEntryBlock().begin());
     return tmpB.CreateAlloca(llvm::Type::getInt32Ty(*_context), nullptr, varName);

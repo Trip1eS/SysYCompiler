@@ -22,7 +22,7 @@
 #include <memory>
 
 class IrGenerator : public AstNodesVisitor {
-public:
+   public:
     explicit IrGenerator(AstNodePtrVector compUnits);
 
     void codegen();
@@ -31,7 +31,7 @@ public:
         _module->print(llvm::outs(), nullptr);
     }
 
-public: // visitor methods
+   public:  // visitor methods
     void visit(const AstCompUnit&) override;
     void visit(const AstDecl&) override;
     void visit(const AstBType&) override;
@@ -62,7 +62,7 @@ public: // visitor methods
     void visit(const AstFuncRParams&) override;
     void visit(const AstFuncCall&) override;
 
-private:
+   private:
     template <class AstT>
     llvm::Value* codegen(const AstT& node) {
         node.accept(*this);
@@ -73,7 +73,7 @@ private:
     llvm::AllocaInst* createEntryBlockAlloca(llvm::Function* func,
                                              const std::string& varName) const;
 
-private:
+   private:
     AstNodePtrVector _compUnits;
     std::unique_ptr<llvm::LLVMContext> _context;
     std::unique_ptr<llvm::IRBuilder<>> _builder;
@@ -81,4 +81,6 @@ private:
     std::map<std::string, llvm::AllocaInst*> _namedValues;
     std::unique_ptr<llvm::legacy::FunctionPassManager> _fpm;
     llvm::Value* _ret;
+    llvm::BasicBlock* _retBB;
+    llvm::AllocaInst* _retAlloca;
 };
