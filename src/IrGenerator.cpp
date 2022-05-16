@@ -76,15 +76,28 @@ void IrGenerator::visit(const AstFuncDef& node) {
 
     auto bb = llvm::BasicBlock::Create(*_context, "entry", func);
     _builder->SetInsertPoint(bb);
+    _retBB = llvm::BasicBlock::Create(*_context, "exit");
 
     _namedValues.clear();
+    if (node.funcType()->type() == FuncType::INT) {
+        _retAlloca = createEntryBlockAlloca(func);
+    } else {
+        _retAlloca = nullptr;
+    }
     for (auto& arg : func->args()) {
         auto allocaInst = createEntryBlockAlloca(func, static_cast<std::string>(arg.getName()));
         _builder->CreateStore(&arg, allocaInst);
         _namedValues[static_cast<std::string>(arg.getName())] = allocaInst;
     }
-    auto retVal = codegen(*node.block());
-    _builder->CreateRet(nullptr);
+
+    codegen(*node.block());
+
+    _builder->CreateBr(_retBB);
+    func->getBasicBlockList().push_back(_retBB);
+    _builder->SetInsertPoint(_retBB);
+    auto retV = _builder->CreateLoad(_retAlloca->getAllocatedType(), _retAlloca);
+    _builder->CreateRet(retV);
+
     verifyFunction(*func);
     RETURN(func);
 
@@ -151,9 +164,11 @@ void IrGenerator::visit(const AstContinueStmt& node) {
 void IrGenerator::visit(const AstReturnStmt& node) {
     if (node.exp() == nullptr) {
         // ret void
-        _builder->CreateRet(nullptr);
+        _builder->CreateBr(_retBB);
     } else {
-        _builder->CreateRet(codegen(*node.exp()));
+        auto retV = codegen(*node.exp());
+        _builder->CreateStore(retV, _retAlloca);
+        _builder->CreateBr(_retBB);
     }
 }
 
