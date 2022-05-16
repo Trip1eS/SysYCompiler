@@ -149,7 +149,30 @@ void IrGenerator::visit(const AstBlockStmt& node) {
 }
 
 void IrGenerator::visit(const AstIfStmt& node) {
-    RETURN(nullptr);
+    auto condV = codegen(*node.cond());
+    condV = _builder->CreateFCmpONE(condV, llvm::ConstantInt::get(*_context, llvm::APInt(32, 0, true)), "ifcond");
+    auto func = _builder->GetInsertBlock()->getParent();
+
+    auto thenBB = llvm::BasicBlock::Create(*_context, "then", func);
+    auto elseBB = llvm::BasicBlock::Create(*_context, "else");
+    auto mergeBB = llvm::BasicBlock::Create(*_context, "ifcont");
+
+    _builder->CreateCondBr(condV, thenBB, elseBB);
+
+    _builder->SetInsertPoint(thenBB);
+    auto thenV = codegen(*node.stmt());
+    _builder->CreateBr(mergeBB);
+    thenBB = _builder->GetInsertBlock();
+
+    func->getBasicBlockList().push_back(elseBB);
+    _builder->SetInsertPoint(elseBB);
+    auto elseV = codegen(*node.elseStmt());
+    _builder->CreateBr(mergeBB);
+    elseBB = _builder->GetInsertBlock();
+
+    func->getBasicBlockList().push_back(mergeBB);
+    _builder->SetInsertPoint(mergeBB);
+    RETURN(mergeBB);
 }
 
 void IrGenerator::visit(const AstWhileStmt& node) {
