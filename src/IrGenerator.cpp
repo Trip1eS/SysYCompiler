@@ -95,7 +95,8 @@ void IrGenerator::visit(const AstFuncDef& node) {
     _builder->CreateBr(_retBB);
     func->getBasicBlockList().push_back(_retBB);
     _builder->SetInsertPoint(_retBB);
-    auto retV = _builder->CreateLoad(_retAlloca->getAllocatedType(), _retAlloca);
+    llvm::Value* retV = nullptr;
+    if (node.funcType()->type() == FuncType::INT) retV = _builder->CreateLoad(_retAlloca->getAllocatedType(), _retAlloca);
     _builder->CreateRet(retV);
 
     verifyFunction(*func);
