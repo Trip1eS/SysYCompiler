@@ -133,16 +133,19 @@ void IrGenerator::visit(const AstAssignStmt& node) {
     auto val = codegen(*node.exp());
     auto variable = _namedValues[node.lVal()->id()];
     if (!variable) throw std::runtime_error("unknown variable name");
-    _builder->CreateStore(val, variable);
-    RETURN(val);
+    auto assign = _builder->CreateStore(val, variable);
+    RETURN(assign);
 }
 
 void IrGenerator::visit(const AstExpStmt& node) {
-    RETURN(nullptr);
+    RETURN(codegen(*node.exp()));
 }
 
 void IrGenerator::visit(const AstBlockStmt& node) {
-    RETURN(nullptr);
+    auto oldBindings = _namedValues;
+    auto block = codegen(*node.block());
+    _namedValues = oldBindings;
+    RETURN(block);
 }
 
 void IrGenerator::visit(const AstIfStmt& node) {
@@ -177,7 +180,7 @@ void IrGenerator::visit(const AstExp& node) {
 }
 
 void IrGenerator::visit(const AstCond& node) {
-    RETURN(nullptr);
+    RETURN(codegen(*node.lOrExp()));
 }
 
 void IrGenerator::visit(const AstLVal& node) {
