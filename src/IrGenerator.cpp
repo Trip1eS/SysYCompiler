@@ -1,4 +1,8 @@
 #include "IrGenerator.hpp"
+#include <llvm/Transforms/Scalar/DCE.h>
+#include <llvm/Transforms/InstCombine/InstCombine.h>
+#include <llvm/Transforms/Scalar.h>
+#include <llvm/Transforms/Utils/BasicBlockUtils.h>
 
 IrGenerator::IrGenerator(AstNodePtrVector compUnits)
     : _compUnits(std::move(compUnits)),
@@ -7,6 +11,11 @@ IrGenerator::IrGenerator(AstNodePtrVector compUnits)
       _module(new llvm::Module("SysY", *_context)),
       _fpm(new llvm::legacy::FunctionPassManager(_module.get())),
       _ret(nullptr) {
+    _fpm->add(llvm::createInstructionCombiningPass());
+    _fpm->add(llvm::createReassociatePass());
+    _fpm->add(llvm::createNewGVNPass());
+    _fpm->add(llvm::createCFGSimplificationPass());
+    _fpm->doInitialization();
 }
 
 llvm::AllocaInst* IrGenerator::createEntryBlockAlloca(llvm::Function* func, const std::string& varName = "") const {
