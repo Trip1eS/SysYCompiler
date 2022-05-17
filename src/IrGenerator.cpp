@@ -156,7 +156,8 @@ void IrGenerator::visit(const AstFuncDef& node) {
     if (node.funcType()->type() == FuncType::INT) retV = _builder->CreateLoad(_retAlloca->getAllocatedType(), _retAlloca);
     _builder->CreateRet(retV);
 
-    verifyFunction(*func);
+    verifyFunction(*func, &llvm::errs());
+    //    _fpm->run(*func);
     RETURN(func);
 
     // func->eraseFromParent();
