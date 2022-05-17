@@ -30,7 +30,7 @@ void IrGenerator::codegen() {
     }
 }
 
-void IrGenerator::outputAsm() {
+void IrGenerator::outputAsm(const std::string& path) {
     llvm::InitializeAllTargetInfos();
     llvm::InitializeAllTargets();
     llvm::InitializeAllTargetMCs();
@@ -57,9 +57,8 @@ void IrGenerator::outputAsm() {
 
     _module->setDataLayout(theTargetMachine->createDataLayout());
 
-    auto filename = "output.o";
     std::error_code EC;
-    llvm::raw_fd_ostream dest(filename, EC, llvm::sys::fs::OF_None);
+    llvm::raw_fd_ostream dest(path, EC, llvm::sys::fs::OF_None);
 
     if (EC) {
         llvm::errs() << "Could not open file: " << EC.message();
