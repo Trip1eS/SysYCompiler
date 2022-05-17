@@ -148,7 +148,7 @@ AstCompUnitPtr Parser::parseCompUnit() {
         return makeAstNode<AstCompUnit>(std::move(funcDef));
     } else {
         // -> VarDecl
-        return makeAstNode<AstCompUnit>(std::move(parseDecl()));
+        return makeAstNode<AstCompUnit>(parseDecl());
     }
 }
 
@@ -158,9 +158,9 @@ AstCompUnitPtr Parser::parseCompUnit() {
 AstDeclPtr Parser::parseDecl() {
     logAstNode("Decl");
     if (tryToken(TokenType::CONST))
-        return makeAstNode<AstDecl>(std::move(parseConstDecl()));
+        return makeAstNode<AstDecl>(parseConstDecl());
     else
-        return makeAstNode<AstDecl>(std::move(parseVarDecl()));
+        return makeAstNode<AstDecl>(parseVarDecl());
 }
 
 AstNodePtr Parser::parseConstDecl() {
@@ -288,7 +288,7 @@ AstFuncFParamsPtr Parser::parseFuncFParams() {
     logAstNode("FuncFParams");
     std::vector<AstFuncFParamPtr> params;
     do {
-        params.emplace_back(std::move(parseFuncFParam()));
+        params.emplace_back(parseFuncFParam());
     } while (tryMatch(TokenType::COMMA));
     return makeAstNode<AstFuncFParams>(std::move(params));
 }
@@ -313,7 +313,7 @@ AstBlockPtr Parser::parseBlock() {
     AstNodePtrVector items;
     while (!tryToken(TokenType::RBRACE)) {
         try {
-            items.emplace_back(std::move(parseBlockItem()));
+            items.emplace_back(parseBlockItem());
         } catch (const ParsingError &err) {
             int curLineno = curToken().getLineno();
             while (curToken().getLineno() == curLineno) nextToken();
@@ -448,13 +448,13 @@ AstPrimaryExpPtr Parser::parsePrimaryExp() {
     if (tryToken(TokenType::LPARENT)) {
         // -> '(' Exp ')'
         nextToken();
-        return makeAstNode<AstPrimaryExp>(std::move(parseExp()));
+        return makeAstNode<AstPrimaryExp>(parseExp());
     } else if (tryToken(TokenType::ID)) {
         // -> LVal
-        return makeAstNode<AstPrimaryExp>(std::move(parseLVal()));
+        return makeAstNode<AstPrimaryExp>(parseLVal());
     } else if (tryToken(TokenType::INTCON)) {
         // -> Number
-        return makeAstNode<AstPrimaryExp>(std::move(parseNumber()));
+        return makeAstNode<AstPrimaryExp>(parseNumber());
     }
     return nullptr;
 }
@@ -478,7 +478,7 @@ AstUnaryExpPtr Parser::parseUnaryExp() {
     logAstNode("UnaryExp");
     if (tryTokenAhead(1, TokenType::LPARENT)) {
         // -> FuncCall
-        return makeAstNode<AstUnaryExp>(std::move(parseFuncCall()));
+        return makeAstNode<AstUnaryExp>(parseFuncCall());
     } else if (tryToken(TokenType::PLUS, TokenType::SUB, TokenType::NOT)) {
         // -> UnaryOp UnaryExp
         UnaryOp op;
@@ -496,7 +496,7 @@ AstUnaryExpPtr Parser::parseUnaryExp() {
         return makeAstNode<AstUnaryExp>(op, std::move(exp));
     } else {
         // -> PrimaryExp
-        return makeAstNode<AstUnaryExp>(std::move(parsePrimaryExp()));
+        return makeAstNode<AstUnaryExp>(parsePrimaryExp());
     }
 }
 
