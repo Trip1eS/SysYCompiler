@@ -14,10 +14,13 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Verifier.h>
+#include <llvm/MC/TargetRegistry.h>
 #include <llvm/Support/TargetSelect.h>
-#include <llvm/Transforms/InstCombine/InstCombine.h>
-#include <llvm/Transforms/Scalar.h>
-#include <llvm/Transforms/Utils.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Support/Host.h>
+#include <llvm/Support/raw_ostream.h>
+#include <llvm/Target/TargetMachine.h>
+#include <llvm/Target/TargetOptions.h>
 #include <map>
 #include <memory>
 
@@ -30,6 +33,8 @@ class IrGenerator : public AstNodesVisitor {
     void printModule() const {
         _module->print(llvm::outs(), nullptr);
     }
+
+    void outputAsm();
 
    public:  // visitor methods
     void visit(const AstCompUnit&) override;

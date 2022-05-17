@@ -21,6 +21,54 @@ void IrGenerator::codegen() {
     }
 }
 
+void IrGenerator::outputAsm() {
+    llvm::InitializeAllTargetInfos();
+    llvm::InitializeAllTargets();
+    llvm::InitializeAllTargetMCs();
+    llvm::InitializeAllAsmPrinters();
+
+    auto targetTriple = llvm::sys::getDefaultTargetTriple();
+    _module->setTargetTriple(targetTriple);
+
+    std::string Error;
+    auto Target = llvm::TargetRegistry::lookupTarget(targetTriple, Error);
+
+    if (!Target) {
+        llvm::errs() << Error;
+        return;
+    }
+
+    auto CPU = "generic";
+    auto Features = "";
+
+    llvm::TargetOptions opt;
+    auto rm = llvm::Optional<llvm::Reloc::Model>();
+    auto theTargetMachine =
+        Target->createTargetMachine(targetTriple, CPU, Features, opt, rm);
+
+    _module->setDataLayout(theTargetMachine->createDataLayout());
+
+    auto filename = "output.o";
+    std::error_code EC;
+    llvm::raw_fd_ostream dest(filename, EC, llvm::sys::fs::OF_None);
+
+    if (EC) {
+        llvm::errs() << "Could not open file: " << EC.message();
+        return;
+    }
+
+    llvm::legacy::PassManager pass;
+    auto fileType = llvm::CGFT_AssemblyFile;
+
+    if (theTargetMachine->addPassesToEmitFile(pass, dest, nullptr, fileType)) {
+        llvm::errs() << "TheTargetMachine can't emit a file of this type";
+        return;
+    }
+
+    pass.run(*_module);
+    dest.flush();
+}
+
 #define RETURN(x) return ret(x)
 
 void IrGenerator::visit(const AstCompUnit& node) {
