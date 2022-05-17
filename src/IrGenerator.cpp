@@ -131,8 +131,8 @@ void IrGenerator::visit(const AstFuncDef& node) {
         arg.setName(node.params()->params()[idx++]->id());
     }
 
-    auto bb = llvm::BasicBlock::Create(*_context, "entry", func);
-    _builder->SetInsertPoint(bb);
+    auto entryBB = llvm::BasicBlock::Create(*_context, "entry", func);
+    _builder->SetInsertPoint(entryBB);
     _retBB = llvm::BasicBlock::Create(*_context, "exit");
 
     _namedValues.clear();
@@ -148,8 +148,7 @@ void IrGenerator::visit(const AstFuncDef& node) {
     }
 
     codegen(*node.block());
-
-    _builder->CreateBr(_retBB);
+    if (entryBB->getTerminator() == nullptr) _builder->CreateBr(_retBB);
     func->getBasicBlockList().push_back(_retBB);
     _builder->SetInsertPoint(_retBB);
     llvm::Value* retV = nullptr;
@@ -209,7 +208,10 @@ void IrGenerator::visit(const AstBlockStmt& node) {
 
 void IrGenerator::visit(const AstIfStmt& node) {
     auto condV = codegen(*node.cond());
-    condV = _builder->CreateFCmpONE(condV, llvm::ConstantInt::get(*_context, llvm::APInt(32, 0, true)), "ifcond");
+    // condV might be i1, convert it to i32
+    condV = _builder->CreateIntCast(condV, llvm::Type::getInt32Ty(*_context), true);
+    // If condV != 0 then goto thenBB, else goto elseBB
+    condV = _builder->CreateICmpNE(condV, llvm::ConstantInt::get(*_context, llvm::APInt(32, 0, true)), "ifcond");
     auto func = _builder->GetInsertBlock()->getParent();
 
     auto thenBB = llvm::BasicBlock::Create(*_context, "then", func);
@@ -220,13 +222,13 @@ void IrGenerator::visit(const AstIfStmt& node) {
 
     _builder->SetInsertPoint(thenBB);
     auto thenV = codegen(*node.stmt());
-    _builder->CreateBr(mergeBB);
+    if (thenBB->getTerminator() == nullptr) _builder->CreateBr(mergeBB);
     thenBB = _builder->GetInsertBlock();
 
     func->getBasicBlockList().push_back(elseBB);
     _builder->SetInsertPoint(elseBB);
     auto elseV = codegen(*node.elseStmt());
-    _builder->CreateBr(mergeBB);
+    if (elseBB->getTerminator() == nullptr) _builder->CreateBr(mergeBB);
     elseBB = _builder->GetInsertBlock();
 
     func->getBasicBlockList().push_back(mergeBB);
