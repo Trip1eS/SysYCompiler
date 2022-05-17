@@ -147,7 +147,7 @@ void IrGenerator::visit(const AstFuncDef& node) {
     }
 
     codegen(*node.block());
-    if (entryBB->getTerminator() == nullptr) _builder->CreateBr(_retBB);
+    if (_builder->GetInsertBlock()->getTerminator() == nullptr) _builder->CreateBr(_retBB);
     func->getBasicBlockList().push_back(_retBB);
     _builder->SetInsertPoint(_retBB);
     llvm::Value* retV = nullptr;
@@ -222,13 +222,13 @@ void IrGenerator::visit(const AstIfStmt& node) {
     _builder->SetInsertPoint(thenBB);
     auto thenV = codegen(*node.stmt());
     thenBB = _builder->GetInsertBlock();
-    if (thenBB->getTerminator() == nullptr) _builder->CreateBr(mergeBB);
+    if (_builder->GetInsertBlock()->getTerminator() == nullptr) _builder->CreateBr(mergeBB);
 
     func->getBasicBlockList().push_back(elseBB);
     _builder->SetInsertPoint(elseBB);
     auto elseV = codegen(*node.elseStmt());
     elseBB = _builder->GetInsertBlock();
-    if (elseBB->getTerminator() == nullptr) _builder->CreateBr(mergeBB);
+    if (_builder->GetInsertBlock()->getTerminator() == nullptr) _builder->CreateBr(mergeBB);
 
     func->getBasicBlockList().push_back(mergeBB);
     _builder->SetInsertPoint(mergeBB);
@@ -253,7 +253,7 @@ void IrGenerator::visit(const AstWhileStmt& node) {
     _builder->SetInsertPoint(bodyBB);
 
     codegen(*node.stmt());
-    if (bodyBB->getTerminator() == nullptr) _builder->CreateBr(condBB);
+    if (_builder->GetInsertBlock()->getTerminator() == nullptr) _builder->CreateBr(condBB);
 
     func->getBasicBlockList().push_back(endBB);
     _builder->SetInsertPoint(endBB);
