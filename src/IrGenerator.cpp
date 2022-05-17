@@ -236,7 +236,29 @@ void IrGenerator::visit(const AstIfStmt& node) {
 }
 
 void IrGenerator::visit(const AstWhileStmt& node) {
-    RETURN(nullptr);
+    auto func = _builder->GetInsertBlock()->getParent();
+    auto condBB = llvm::BasicBlock::Create(*_context, "while.cond", func);
+    auto bodyBB = llvm::BasicBlock::Create(*_context, "while.body");
+    auto endBB = llvm::BasicBlock::Create(*_context, "while.end");
+
+    _builder->CreateBr(condBB);
+    _builder->SetInsertPoint(condBB);
+    auto condV = codegen(*node.cond());
+    condV = _builder->CreateIntCast(condV, llvm::Type::getInt32Ty(*_context), true);
+    // If condV != 0 then goto thenBB, else goto elseBB
+    condV = _builder->CreateICmpNE(condV, llvm::ConstantInt::get(*_context, llvm::APInt(32, 0, true)), "whilecond");
+    _builder->CreateCondBr(condV, bodyBB, endBB);
+
+    func->getBasicBlockList().push_back(bodyBB);
+    _builder->SetInsertPoint(bodyBB);
+
+    codegen(*node.stmt());
+    if (bodyBB->getTerminator() == nullptr) _builder->CreateBr(condBB);
+
+    func->getBasicBlockList().push_back(endBB);
+    _builder->SetInsertPoint(endBB);
+
+    RETURN(endBB);
 }
 
 void IrGenerator::visit(const AstBreakStmt& node) {
