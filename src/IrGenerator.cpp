@@ -250,11 +250,13 @@ void IrGenerator::visit(const AstContinueStmt& node) {
 void IrGenerator::visit(const AstReturnStmt& node) {
     if (node.exp() == nullptr) {
         // ret void
-        _builder->CreateBr(_retBB);
+        auto br = _builder->CreateBr(_retBB);
+        RETURN(br);
     } else {
         auto retV = codegen(*node.exp());
         _builder->CreateStore(retV, _retAlloca);
-        _builder->CreateBr(_retBB);
+        auto br = _builder->CreateBr(_retBB);
+        RETURN(br);
     }
 }
 
