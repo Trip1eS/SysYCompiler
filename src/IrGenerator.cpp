@@ -221,14 +221,14 @@ void IrGenerator::visit(const AstIfStmt& node) {
 
     _builder->SetInsertPoint(thenBB);
     auto thenV = codegen(*node.stmt());
-    if (thenBB->getTerminator() == nullptr) _builder->CreateBr(mergeBB);
     thenBB = _builder->GetInsertBlock();
+    if (thenBB->getTerminator() == nullptr) _builder->CreateBr(mergeBB);
 
     func->getBasicBlockList().push_back(elseBB);
     _builder->SetInsertPoint(elseBB);
     auto elseV = codegen(*node.elseStmt());
-    if (elseBB->getTerminator() == nullptr) _builder->CreateBr(mergeBB);
     elseBB = _builder->GetInsertBlock();
+    if (elseBB->getTerminator() == nullptr) _builder->CreateBr(mergeBB);
 
     func->getBasicBlockList().push_back(mergeBB);
     _builder->SetInsertPoint(mergeBB);
