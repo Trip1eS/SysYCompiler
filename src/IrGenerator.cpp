@@ -16,12 +16,20 @@ IrGenerator::IrGenerator(AstNodePtrVector compUnits)
     _fpm->add(llvm::createNewGVNPass());
     _fpm->add(llvm::createCFGSimplificationPass());
     _fpm->doInitialization();
+
+    addExternFunction("getint", llvm::Type::getInt32Ty(*_context), std::vector<llvm::Type*>());
+    addExternFunction("putint", llvm::Type::getVoidTy(*_context), std::vector<llvm::Type*>(1, llvm::Type::getInt32Ty(*_context)));
 }
 
 llvm::AllocaInst* IrGenerator::createEntryBlockAlloca(llvm::Function* func, const std::string& varName = "") const {
     llvm::IRBuilder<> tmpB(&func->getEntryBlock(),
                            func->getEntryBlock().begin());
     return tmpB.CreateAlloca(llvm::Type::getInt32Ty(*_context), nullptr, varName);
+}
+
+void IrGenerator::addExternFunction(const char* name, llvm::Type* retType, const std::vector<llvm::Type*>& params) {
+    auto funcType = llvm::FunctionType::get(retType, params, false);
+    llvm::Function::Create(funcType, llvm::Function::ExternalLinkage, name, _module.get());
 }
 
 void IrGenerator::codegen() {

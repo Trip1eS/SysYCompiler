@@ -36,6 +36,8 @@ class IrGenerator : public AstNodesVisitor {
 
     void outputAsm(const std::string& path);
 
+    void addExternFunction(const char* name, llvm::Type* retType, const std::vector<llvm::Type*>& params);
+
    public:  // visitor methods
     void visit(const AstCompUnit&) override;
     void visit(const AstDecl&) override;
