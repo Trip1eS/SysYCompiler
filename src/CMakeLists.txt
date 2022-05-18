@@ -9,6 +9,7 @@ endforeach ()
 
 add_library(${CMAKE_PROJECT_NAME}_lib ${SOURCE_FILES})
 target_link_libraries(${CMAKE_PROJECT_NAME}_lib ${llvm_libs} ${targets})
+set_target_properties(${CMAKE_PROJECT_NAME}_lib PROPERTIES PREFIX "")
 
 add_executable(${CMAKE_PROJECT_NAME}_run ${RUN_FILES})
 
