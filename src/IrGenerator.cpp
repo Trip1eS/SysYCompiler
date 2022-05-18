@@ -213,9 +213,9 @@ void IrGenerator::visit(const AstIfStmt& node) {
     condV = _builder->CreateICmpNE(condV, llvm::ConstantInt::get(*_context, llvm::APInt(32, 0, true)), "ifcond");
     auto func = _builder->GetInsertBlock()->getParent();
 
-    auto thenBB = llvm::BasicBlock::Create(*_context, "then", func);
-    auto elseBB = llvm::BasicBlock::Create(*_context, "else");
-    auto mergeBB = llvm::BasicBlock::Create(*_context, "ifcont");
+    auto thenBB = llvm::BasicBlock::Create(*_context, "if.then", func);
+    auto elseBB = llvm::BasicBlock::Create(*_context, "if.else");
+    auto mergeBB = llvm::BasicBlock::Create(*_context, "if.end");
 
     _builder->CreateCondBr(condV, thenBB, elseBB);
 
