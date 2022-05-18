@@ -1,8 +1,9 @@
 #include "Parser.hpp"
 #include <fstream>
+#include "Logger.hpp"
 
 Parser::Parser(std::vector<Token> tokens)
-        : _tokens(tokens) {
+    : _tokens(tokens) {
     _tokenIter = _tokens.begin();
 }
 
@@ -13,7 +14,7 @@ void Parser::reset() {
 
 void Parser::parse() {
     reset();
-    std::cout << "[Log] (Parser) Start parsing...\n";
+    log() << "(Parser) Start parsing...\n";
     while (!eof()) {
         try {
             auto compUnit = parseCompUnit();
@@ -23,20 +24,20 @@ void Parser::parse() {
         }
     }
     if (_hasError) {
-        std::cout << "[Log] (Parser) Parsing done with errors.\n";
+        log() << "(Parser) Parsing done with errors.\n";
     } else {
-        std::cout << "[Log] (Parser) Parsing done with success.\n";
+        log() << "(Parser) Parsing done with success.\n";
     }
 }
 
 void Parser::outputAst(const std::string &filePath) {
     if (_compUnits.empty()) {
-        std::cerr << "[Error] No CompUnit avaliable\n";
+        err() << "(Parser) No CompUnit avaliable\n";
         return;
     }
     std::ofstream file(filePath, std::ios::out);
     file << _astLogStream.rdbuf();
-    std::cout << "[Log] (Parser) Written AST to file: " << filePath << "\n";
+    log() << "(Parser) Written AST to file: " << filePath << "\n";
 }
 
 void Parser::logAstToken(const Token &token) {
@@ -58,7 +59,7 @@ ParsingError Parser::error(const std::string &msg) {
     else
         lineno = curToken().getLineno();
     _errors.emplace_back(lineno, msg);
-    std::cerr << "[Error] Type B at line " << lineno << " : " << msg << "\n";
+    err() << "Error Type B at line " << lineno << " : " << msg << "\n";
     _hasError = true;
     return ParsingError(curToken().getLineno(), msg);
 }
