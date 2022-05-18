@@ -379,5 +379,8 @@ void IrGenerator::visit(const AstFuncCall& node) {
     for (auto& param : node.params()) {
         argsVals.push_back(codegen(*param));
     }
-    return ret(_builder->CreateCall(func, argsVals, "calltmp"));
+    if (func->getFunctionType()->getReturnType()->isVoidTy())
+        RETURN(_builder->CreateCall(func, argsVals));
+    else
+        RETURN(_builder->CreateCall(func, argsVals, "calltmp"));
 }
