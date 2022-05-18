@@ -38,7 +38,7 @@ void IrGenerator::codegen() {
     }
 }
 
-void IrGenerator::outputAsm(const std::string& path) {
+void IrGenerator::output(const std::string& path, llvm::CodeGenFileType fileType) {
     llvm::InitializeAllTargetInfos();
     llvm::InitializeAllTargets();
     llvm::InitializeAllTargetMCs();
@@ -74,7 +74,6 @@ void IrGenerator::outputAsm(const std::string& path) {
     }
 
     llvm::legacy::PassManager pass;
-    auto fileType = llvm::CGFT_AssemblyFile;
 
     if (theTargetMachine->addPassesToEmitFile(pass, dest, nullptr, fileType)) {
         llvm::errs() << "TheTargetMachine can't emit a file of this type";

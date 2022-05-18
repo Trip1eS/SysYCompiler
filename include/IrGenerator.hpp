@@ -34,7 +34,7 @@ class IrGenerator : public AstNodesVisitor {
         _module->print(llvm::outs(), nullptr);
     }
 
-    void outputAsm(const std::string& path);
+    void output(const std::string& path, llvm::CodeGenFileType fileType);
 
     void addExternFunction(const char* name, llvm::Type* retType, const std::vector<llvm::Type*>& params);
 
