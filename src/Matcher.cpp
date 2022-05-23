@@ -1,5 +1,6 @@
 #include "Matcher.hpp"
 #include <algorithm>
+#include "Logger.hpp"
 
 void StringMatcher::reset() {
     Matcher::reset();
@@ -23,19 +24,18 @@ void StringMatcher::read(char curChar, char nextChar) {
 
 IntConstMatcher::IntConstMatcher(TokenType tokenType)
     : Matcher(tokenType) {
-    _onError = [this]() -> auto { return getErrorMsg(); };
 }
 
-std::string IntConstMatcher::getErrorMsg() {
-    char buf[256];
+std::optional<std::string> IntConstMatcher::getErrorMsg() const {
+    std::string ret;
     if (_type == Type::Decimal) {
-        snprintf(buf, sizeof(buf), "Illegal decimal number \"%s\"", _val.c_str());
+        ret = stringFormat("Illegal decimal number \"%s\"", _val.c_str());
     } else if (_type == Type::Hexadecimal) {
-        snprintf(buf, sizeof(buf), "Illegal hexadecimal number \"%s\"", _val.c_str());
+        ret = stringFormat("Illegal hexadecimal number \"%s\"", _val.c_str());
     } else {
-        snprintf(buf, sizeof(buf), "Illegal octal number \"%s\"", _val.c_str());
+        ret = stringFormat("Illegal octal number \"%s\"", _val.c_str());
     }
-    return buf;
+    return ret;
 }
 
 void IntConstMatcher::reset() {

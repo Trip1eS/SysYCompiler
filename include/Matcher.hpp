@@ -12,30 +12,33 @@ enum class MatchStatus {
     Reading
 };
 
+/**
+ * A simple state machine used in Lexer for checking whether the input characters match a certain pattern.
+ * We use this for better extensibility and still a good performance (since there are not that much token types).
+ * It reads two characters from input, current character and the next character.
+ * If it can accept current character, but not the next one, it means it matches a token.
+ */
 class Matcher {
    public:
-    using OnErrorFunc = std::function<std::string(void)>;
-
-   public:
     Matcher(
-        TokenType tokenType,
-        std::optional<OnErrorFunc> onError = std::nullopt)
-        : _tokenType(tokenType), _onError(onError) {}
+        TokenType tokenType)
+        : _tokenType(tokenType) {}
     virtual ~Matcher() {}
 
-    const auto& getOnError() const { return _onError; }
+    virtual std::optional<std::string> getErrorMsg() const { return std::nullopt; }
     MatchStatus getCurrentStatus() const { return _status; }
     MatchStatus getLastStatus() const { return _lastStatus; }
     std::string_view getName() const { return getTokenName(_tokenType); }
-    void setStatus(MatchStatus status) { _lastStatus = _status, _status = status; }
-    virtual void reset() { _status = _lastStatus = MatchStatus::Reading; }
-    virtual void read(char curChar, char nextChar) = 0;
     virtual std::string getValue() = 0;
     TokenType getTokenType() const { return _tokenType; }
+    virtual void reset() { _status = _lastStatus = MatchStatus::Reading; }
+    virtual void read(char curChar, char nextChar) = 0;
+
+   protected:
+    void setStatus(MatchStatus status) { _lastStatus = _status, _status = status; }
 
    protected:
     TokenType _tokenType;
-    std::optional<OnErrorFunc> _onError;
 
    private:
     MatchStatus _status;
@@ -48,9 +51,8 @@ class StringMatcher : public Matcher {
    public:
     StringMatcher(
         TokenType tokenType,
-        std::string str,
-        std::optional<OnErrorFunc> onError = std::nullopt)
-        : _str(str), _index(0), Matcher(tokenType, onError) {}
+        std::string str)
+        : _str(str), _index(0), Matcher(tokenType) {}
     virtual ~StringMatcher() {}
 
     virtual void reset() override;
@@ -64,14 +66,6 @@ class StringMatcher : public Matcher {
 
 using StringMatcherPtr = std::unique_ptr<StringMatcher>;
 
-class KeywordMatcher : public StringMatcher {
-    using StringMatcher::StringMatcher;
-};
-
-class OperatorMatcher : public StringMatcher {
-    using StringMatcher::StringMatcher;
-};
-
 class IntConstMatcher : public Matcher {
    public:
     enum class Type {
@@ -83,10 +77,10 @@ class IntConstMatcher : public Matcher {
    public:
     IntConstMatcher(TokenType tokenType);
     virtual ~IntConstMatcher() = default;
+    virtual std::optional<std::string> getErrorMsg() const override;
     virtual void reset() override;
     virtual void read(char curChar, char nextChar) override;
     virtual std::string getValue() override;
-    std::string getErrorMsg();
     bool check();
 
    private:

@@ -115,9 +115,8 @@ std::optional<Token> Lexer::getNextToken() {
                 _difinitions.begin(), _difinitions.end(),
                 [](auto& m) { return m->getCurrentStatus() == MatchStatus::Error; });
             std::string msg;
-            if (auto onError = matcher->getOnError()) {
-                auto errMsg = (*onError)();
-                msg = stringFormat("Error type A at line %d : %s", _lineno, errMsg.c_str());
+            if (auto errMsg = matcher->getErrorMsg()) {
+                msg = stringFormat("Error type A at line %d : %s", _lineno, errMsg->c_str());
 
             } else {
                 // unhandled error
