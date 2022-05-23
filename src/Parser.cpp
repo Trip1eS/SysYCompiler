@@ -486,7 +486,9 @@ AstUnaryExpPtr Parser::parseUnaryExp() {
         if (tryToken(TokenType::PLUS)) {
             // '+' has no effects, just skip
             nextToken();
-            return parseUnaryExp();
+            auto exp = parseUnaryExp();
+            _astDepth--;
+            return exp;
         } else if (tryToken(TokenType::SUB))
             op = UnaryOp::MINUS;
         else
