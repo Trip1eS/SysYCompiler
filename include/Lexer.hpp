@@ -19,7 +19,7 @@ class LexingError : public std::runtime_error {
  */
 class Lexer {
    public:
-    Lexer();
+    Lexer(const std::string& filePath);
 
     /**
      * @brief Add a difinition to this lexer
@@ -44,7 +44,7 @@ class Lexer {
      * @param filePath the relative path to the file
      * @return a tuple of (vector of tokens, vector of error messages)
      */
-    std::vector<Token> lex(const std::string& filePath);
+    void lex();
 
     /**
      * @brief Load an SysY source file into input stream
@@ -71,8 +71,13 @@ class Lexer {
 
     bool hasError() const { return _hasError; }
 
+    void outputTokens(const std::string& path) const;
+
+    auto& getTokens() { return _tokens; }
+
    private:
     std::vector<MatcherPtr> _difinitions;
+    std::vector<Token> _tokens;
     std::ifstream _inputStream;
     std::optional<std::string> _lastError;
     int _lineno;

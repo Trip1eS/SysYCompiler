@@ -5,34 +5,60 @@
 #include "Token.hpp"
 #include "Parser.hpp"
 #include "IrGenerator.hpp"
+#include "Logger.hpp"
+
+enum Target {
+    TOKENS,
+    AST,
+    IR,
+    ASM
+};
 
 int main(int argc, char** argv) {
-    if (argc < 2) {
-        std::cerr << "error: no input file\n";
+    Target target;
+    if (argc < 4) {
+        err() << "invalid arguments\n";
         return 1;
     }
-    std::string inFilePath(argv[1]);
-    std::string outFilePath;
-    if (argc >= 3 && strcmp(argv[2], "-o") == 0) {
-        if (argc == 4) {
-            outFilePath = argv[3];
-        } else {
-            std::cerr << "error: no output file\n";
-            return 1;
-        }
+
+    if (strcmp(argv[1], "-l") == 0) {
+        target = TOKENS;
+    } else if (strcmp(argv[1], "-p") == 0) {
+        target = AST;
+    } else if (strcmp(argv[1], "-i") == 0) {
+        target = IR;
+    } else if (strcmp(argv[1], "-s") == 0) {
+        target = ASM;
     } else {
-        outFilePath = "out.s";
+        err() << "no target\n";
+        return 1;
     }
 
-    Lexer lexer;
-    auto tokens = lexer.lex(inFilePath);
+    std::string inFilePath(argv[2]);
+    std::string outFilePath(argv[4]);
+
+    Lexer lexer(inFilePath);
+    lexer.lex();
     if (lexer.hasError()) return 1;
-    Parser parser(std::move(tokens));
+    if (target == TOKENS) {
+        lexer.outputTokens(outFilePath);
+        return 0;
+    }
+    Parser parser(std::move(lexer.getTokens()));
     parser.parse();
     if (parser.hasError()) return 1;
+    if (target == AST) {
+        parser.outputAst(outFilePath);
+        return 0;
+    }
     IrGenerator irGen(std::move(parser.getCompUnits()));
     irGen.codegen();
-    irGen.output(outFilePath, llvm::CGFT_AssemblyFile);
-
+    if (target == IR) {
+        irGen.printModule(outFilePath);
+        return 0;
+    }
+    if (target == ASM) {
+        irGen.output(outFilePath, llvm::CGFT_AssemblyFile);
+    }
     return 0;
 }

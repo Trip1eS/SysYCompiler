@@ -4,7 +4,7 @@
 #include <memory>
 #include "Logger.hpp"
 
-Lexer::Lexer() {
+Lexer::Lexer(const std::string& filePath) {
     addDifinition<StringMatcher>(TokenType::LPARENT, "(");
     addDifinition<StringMatcher>(TokenType::RPARENT, ")");
     addDifinition<StringMatcher>(TokenType::LSQBRA, "[");
@@ -39,22 +39,22 @@ Lexer::Lexer() {
     addDifinition<StringMatcher>(TokenType::RETURN, "return");
     addDifinition<IdMatcher>(TokenType::ID);
     addDifinition<IntConstMatcher>(TokenType::INTCON);
+    loadFile(filePath);
 }
 
 void Lexer::addDifinition(MatcherPtr matcher) {
     _difinitions.push_back(std::move(matcher));
 }
 
-std::vector<Token> Lexer::lex(const std::string& filePath) {
+void Lexer::lex() {
+    _tokens.clear();
     _hasError = false;
-    std::vector<Token> tokens;
-    loadFile(filePath);
     std::optional<Token> token;
 
     while (true) {
         try {
             if ((token = getNextToken())) {
-                tokens.push_back(*token);
+                _tokens.push_back(*token);
             } else {
                 break;  // finish Lexical analysis
             }
@@ -64,13 +64,18 @@ std::vector<Token> Lexer::lex(const std::string& filePath) {
             _hasError = true;
         }
     }
-
-    return tokens;
 }
 
 void Lexer::loadFile(const std::string& filePath) {
     _inputStream = std::ifstream(filePath, std::ios::in);
     _lineno = 1;
+}
+
+void Lexer::outputTokens(const std::string& path) const {
+    std::ofstream of(path);
+    for (auto& token : _tokens) {
+        of << token.getName() << " " << token.getValue() << "\n";
+    }
 }
 
 std::optional<Token> Lexer::getNextToken() {

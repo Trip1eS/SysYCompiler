@@ -83,7 +83,7 @@ class Parser {
     /**
      * @brief Write AST structure to file
      */
-    void outputAst(const std::string& filePath);
+    void outputAst(const std::string &path);
 
     /**
      * @brief whether parser encountered errors

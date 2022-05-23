@@ -21,6 +21,7 @@
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetOptions.h>
+#include <llvm/Support/raw_os_ostream.h>
 #include <map>
 #include <memory>
 
@@ -30,8 +31,10 @@ class IrGenerator : public AstNodesVisitor {
 
     void codegen();
 
-    void printModule() const {
-        _module->print(llvm::outs(), nullptr);
+    void printModule(const std::string& path) const {
+        std::error_code ec;
+        llvm::raw_fd_ostream of(path, ec);
+        _module->print(of, nullptr);
     }
 
     void output(const std::string& path, llvm::CodeGenFileType fileType);
