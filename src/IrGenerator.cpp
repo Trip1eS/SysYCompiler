@@ -3,6 +3,7 @@
 #include <llvm/Transforms/InstCombine/InstCombine.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Transforms/Utils/BasicBlockUtils.h>
+#include "Logger.hpp"
 
 IrGenerator::IrGenerator(AstNodePtrVector compUnits)
     : _compUnits(std::move(compUnits)),
@@ -33,9 +34,11 @@ void IrGenerator::addExternFunction(const char* name, llvm::Type* retType, const
 }
 
 void IrGenerator::codegen() {
+    log() << "(IrGen) Start codegen...\n";
     for (auto& compUnit : _compUnits) {
         auto value = codegen(*compUnit);
     }
+    log() << "(IrGen) Codegen done.\n";
 }
 
 void IrGenerator::output(const std::string& path, llvm::CodeGenFileType fileType) {

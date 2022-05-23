@@ -51,6 +51,7 @@ void Lexer::lex() {
     _hasError = false;
     std::optional<Token> token;
 
+    log() << "(Lexer) Start lexing...\n";
     while (true) {
         try {
             if ((token = getNextToken())) {
@@ -63,6 +64,11 @@ void Lexer::lex() {
             nextLine();
             _hasError = true;
         }
+    }
+    if (_hasError) {
+        log() << "(Lexer) lexing done with errors.\n";
+    } else {
+        log() << "(Lexer) lexing done successfully with " << _tokens.size() << " tokens.\n";
     }
 }
 
