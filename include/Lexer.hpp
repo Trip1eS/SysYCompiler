@@ -60,13 +60,6 @@ class Lexer {
      */
     std::optional<Token> getNextToken();
 
-    /**
-     * @brief Get last error message
-     *
-     * @return an error message if an error occurred in last getNextToken(), otherwise nullopt
-     */
-    const std::optional<std::string>& getLastError() const { return _lastError; }
-
     void nextLine();
 
     bool hasError() const { return _hasError; }
@@ -79,7 +72,6 @@ class Lexer {
     std::vector<MatcherPtr> _difinitions;
     std::vector<Token> _tokens;
     std::ifstream _inputStream;
-    std::optional<std::string> _lastError;
     int _lineno;
     char _curChar;
     bool _hasError;
