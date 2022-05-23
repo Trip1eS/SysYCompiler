@@ -85,7 +85,6 @@ void Lexer::outputTokens(const std::string& path) const {
 }
 
 std::optional<Token> Lexer::getNextToken() {
-    // _lastError = std::nullopt;
     for (auto& matcher : _difinitions) matcher->reset();
     char _curChar = _inputStream.get();
     while (_curChar == ' ' || _curChar == '\n' || _curChar == '\t') {
@@ -93,21 +92,23 @@ std::optional<Token> Lexer::getNextToken() {
         _curChar = _inputStream.get();
     }
 
+    // Scan through the code file
     while (_curChar != EOF) {
-        bool hasReading = false;
-        bool hasAccept = false;
-        bool allReject = true;
-        bool hasError = false;
+        bool hasReading = false;  // Whether there are matchers still reading
+        bool hasAccept = false;   // Whether there are matchers that has Accept status
+        bool allReject = true;    // Whether every matcher rejects, meaning there's an error
+        bool hasError = false;    // Whether there are matchers that encounters an error
+
+        // Feed input characters into matchers.
         for (auto& matcher : _difinitions) {
             if (matcher->getCurrentStatus() == MatchStatus::Reject) continue;
+            // use istream::peek() to get nextChar
             matcher->read(_curChar, _inputStream.peek());
             auto status = matcher->getCurrentStatus();
             if (status != MatchStatus::Reject) allReject = false;
             if (status == MatchStatus::Reading) hasReading = true;
             if (status == MatchStatus::Accept) hasAccept = true;
-            if (status == MatchStatus::Error) {
-                hasError = true;
-            }
+            if (status == MatchStatus::Error) hasError = true;
         }
 
         if (hasError) {
@@ -115,25 +116,29 @@ std::optional<Token> Lexer::getNextToken() {
                 _difinitions.begin(), _difinitions.end(),
                 [](auto& m) { return m->getCurrentStatus() == MatchStatus::Error; });
             std::string msg;
+            // Get the error message from Matcher if available.
             if (auto errMsg = matcher->getErrorMsg()) {
                 msg = stringFormat("Error type A at line %d : %s", _lineno, errMsg->c_str());
-
             } else {
-                // unhandled error
                 msg = stringFormat("Error type A at line %d : Invaild character \"%c\"", _lineno, _inputStream.peek());
             }
+            // Just throw the error, let lex() handle it.
             throw LexingError(msg);
         }
 
         if (allReject) {
+            // allReject also means there's an error.
             std::string msg = stringFormat("Error type A at line %d : Invaild character \"%c\"", _lineno, _curChar);
             throw LexingError(msg);
         }
 
         if (hasAccept && !hasReading) {
+            // If there's only one Matcher remaining and it says Accept, then we get a token.
+            // find that matcher
             auto& matcher = *std::find_if(
                 _difinitions.begin(), _difinitions.end(),
                 [](auto& m) { return m->getCurrentStatus() == MatchStatus::Accept; });
+            // construct the token
             return Token(matcher->getTokenType(), matcher->getValue(), _lineno);
         }
         _curChar = _inputStream.get();

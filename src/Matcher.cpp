@@ -48,6 +48,7 @@ bool IntConstMatcher::check() {
         case Type::Decimal:
             return std::all_of(_val.begin(), _val.end(), [](auto& c) { return std::isdigit(c); });
         case Type::Hexadecimal:
+            // The first two characters are '0x' or '0X', skip them.
             return _val.size() > 2 &&
                    std::all_of(_val.begin() + 2, _val.end(),
                                [](auto& c) {
@@ -56,6 +57,7 @@ bool IntConstMatcher::check() {
                                           c >= 'A' && c <= 'F';
                                });
         case Type::Octal:
+            // The first character is '0', skip it.
             return _val.size() > 1 &&
                    std::all_of(_val.begin() + 1, _val.end(),
                                [](auto& c) {
@@ -74,6 +76,7 @@ void IntConstMatcher::read(char curChar, char nextChar) {
             return;
         }
         if (curChar == '0' && (std::isdigit(nextChar) || std::isalpha(nextChar))) {
+            // the first character is '0'
             if (nextChar == 'x' || nextChar == 'X') {
                 _type = Type::Hexadecimal;
             } else {
@@ -100,6 +103,7 @@ void IntConstMatcher::read(char curChar, char nextChar) {
 }
 
 std::string IntConstMatcher::getValue() {
+    // Convert to decimal
     switch (_type) {
         case Type::Decimal:
             return _val;
@@ -142,11 +146,14 @@ void IdMatcher::reset() {
 void IdMatcher::read(char curChar, char nextChar) {
     if (getCurrentStatus() == MatchStatus::Reject) return;
     if (_val.empty()) {
+        // The first character can be '_' or [a-z]
         if (!(curChar == '_' || std::isalpha(curChar))) {
             setStatus(MatchStatus::Reject);
         } else if (nextChar == '_' || std::isalpha(nextChar) || std::isdigit(nextChar)) {
+            // Can accept next char
             setStatus(MatchStatus::Reading);
         } else {
+            // Cannot accept next char
             setStatus(MatchStatus::Accept);
         }
     } else {

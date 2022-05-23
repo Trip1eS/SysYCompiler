@@ -60,13 +60,17 @@ class Lexer {
      */
     std::optional<Token> getNextToken();
 
-    void nextLine();
-
     bool hasError() const { return _hasError; }
 
+    /**
+     * @brief Output the token list to file.
+     */
     void outputTokens(const std::string& path) const;
 
     auto& getTokens() { return _tokens; }
+
+   private:
+    void nextLine();
 
    private:
     std::vector<MatcherPtr> _difinitions;

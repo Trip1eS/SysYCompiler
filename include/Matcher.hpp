@@ -6,10 +6,10 @@
 #include "Token.hpp"
 
 enum class MatchStatus {
-    Accept,
-    Reject,
-    Error,
-    Reading
+    Accept,  // accept curChar but not accept nextChar
+    Reject,  // already failed
+    Error,   // encountered error
+    Reading  // accept curChar and nextChar
 };
 
 /**
@@ -25,13 +25,29 @@ class Matcher {
         : _tokenType(tokenType) {}
     virtual ~Matcher() {}
 
+    /**
+     * @brief Get last error message.
+     *
+     * @return Last error message. If there's no error message, nullopt is returned.
+     */
     virtual std::optional<std::string> getErrorMsg() const { return std::nullopt; }
+
     MatchStatus getCurrentStatus() const { return _status; }
     MatchStatus getLastStatus() const { return _lastStatus; }
     std::string_view getName() const { return getTokenName(_tokenType); }
     virtual std::string getValue() = 0;
     TokenType getTokenType() const { return _tokenType; }
+
+    /**
+     * @brief Reset the state machine
+     */
     virtual void reset() { _status = _lastStatus = MatchStatus::Reading; }
+
+    /**
+     * @brief Read current character and the next character.
+     * @details If it can read curChar and it will read nextChar, the status will be Reading.
+     *          It it can read curChar but it won't read nextChar, the status will be Accept.
+     */
     virtual void read(char curChar, char nextChar) = 0;
 
    protected:
@@ -47,6 +63,9 @@ class Matcher {
 
 using MatcherPtr = std::unique_ptr<Matcher>;
 
+/**
+ * @brief A Matcher that simply check whether input characters match a string.
+ */
 class StringMatcher : public Matcher {
    public:
     StringMatcher(
@@ -66,6 +85,9 @@ class StringMatcher : public Matcher {
 
 using StringMatcherPtr = std::unique_ptr<StringMatcher>;
 
+/**
+ * @brief A Matcher for int literals. It can handle decimal, octal and hexadecimal numbers.
+ */
 class IntConstMatcher : public Matcher {
    public:
     enum class Type {
@@ -80,7 +102,15 @@ class IntConstMatcher : public Matcher {
     virtual std::optional<std::string> getErrorMsg() const override;
     virtual void reset() override;
     virtual void read(char curChar, char nextChar) override;
+
+    /**
+     * @brief Get the integer literal (decimal).
+     */
     virtual std::string getValue() override;
+
+    /**
+     * @brief Check whether it's a valid number
+     */
     bool check();
 
    private:
@@ -90,6 +120,9 @@ class IntConstMatcher : public Matcher {
 
 using IntConstMatcherPtr = std::unique_ptr<IntConstMatcher>;
 
+/**
+ * @brief A Matcher for identifiers.
+ */
 class IdMatcher : public Matcher {
    public:
     IdMatcher(TokenType tokenType)

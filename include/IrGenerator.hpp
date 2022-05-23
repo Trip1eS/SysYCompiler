@@ -31,6 +31,9 @@ class IrGenerator : public AstNodesVisitor {
 
     void codegen();
 
+    /**
+     * @brief Output LLVM IR to file.
+     */
     void printModule(const std::string& path) const {
         std::error_code ec;
         llvm::raw_fd_ostream of(path, ec);
@@ -39,6 +42,13 @@ class IrGenerator : public AstNodesVisitor {
 
     void output(const std::string& path, llvm::CodeGenFileType fileType);
 
+    /**
+     * @brief Manually add an extern function for SysY to use runtime libraries.
+     *
+     * @param name the name of the function
+     * @param retType return type of the function
+     * @param params parameter types of the function
+     */
     void addExternFunction(const char* name, llvm::Type* retType, const std::vector<llvm::Type*>& params);
 
    public:  // visitor methods
