@@ -44,7 +44,7 @@ class Lexer {
      * @param filePath the relative path to the file
      * @return a tuple of (vector of tokens, vector of error messages)
      */
-    std::tuple<std::vector<Token>, std::vector<std::string>> lex(const std::string& filePath);
+    std::vector<Token> lex(const std::string& filePath);
 
     /**
      * @brief Load an SysY source file into input stream
@@ -69,10 +69,13 @@ class Lexer {
 
     void nextLine();
 
+    bool hasError() const { return _hasError; }
+
    private:
     std::vector<MatcherPtr> _difinitions;
     std::ifstream _inputStream;
     std::optional<std::string> _lastError;
     int _lineno;
     char _curChar;
+    bool _hasError;
 };

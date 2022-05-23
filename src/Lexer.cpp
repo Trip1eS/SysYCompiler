@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include "Logger.hpp"
 
 Lexer::Lexer() {
     addDifinition<StringMatcher>(TokenType::LPARENT, "(");
@@ -44,9 +45,9 @@ void Lexer::addDifinition(MatcherPtr matcher) {
     _difinitions.push_back(std::move(matcher));
 }
 
-std::tuple<std::vector<Token>, std::vector<std::string>> Lexer::lex(const std::string& filePath) {
+std::vector<Token> Lexer::lex(const std::string& filePath) {
+    _hasError = false;
     std::vector<Token> tokens;
-    std::vector<std::string> errors;
     loadFile(filePath);
     std::optional<Token> token;
 
@@ -58,12 +59,13 @@ std::tuple<std::vector<Token>, std::vector<std::string>> Lexer::lex(const std::s
                 break;  // finish Lexical analysis
             }
         } catch (const LexingError& e) {
-            errors.push_back(e.what());
+            err() << e.what() << "\n";
             nextLine();
+            _hasError = true;
         }
     }
 
-    return {tokens, errors};
+    return tokens;
 }
 
 void Lexer::loadFile(const std::string& filePath) {
@@ -101,21 +103,21 @@ std::optional<Token> Lexer::getNextToken() {
             auto& matcher = *std::find_if(
                 _difinitions.begin(), _difinitions.end(),
                 [](auto& m) { return m->getCurrentStatus() == MatchStatus::Error; });
-            char buf[256];
+            std::string msg;
             if (auto onError = matcher->getOnError()) {
                 auto errMsg = (*onError)();
-                snprintf(buf, sizeof(buf), "Error type A at line %d : %s", _lineno, errMsg.c_str());
+                msg = stringFormat("Error type A at line %d : %s", _lineno, errMsg.c_str());
+
             } else {
                 // unhandled error
-                snprintf(buf, sizeof(buf), "Error type A at line %d : Invaild character \"%c\"", _lineno, _inputStream.peek());
+                msg = stringFormat("Error type A at line %d : Invaild character \"%c\"", _lineno, _inputStream.peek());
             }
-            throw LexingError(buf);
+            throw LexingError(msg);
         }
 
         if (allReject) {
-            char buf[256];
-            snprintf(buf, sizeof(buf), "Error type A at line %d : Invaild character \"%c\"", _lineno, _curChar);
-            throw LexingError(buf);
+            std::string msg = stringFormat("Error type A at line %d : Invaild character \"%c\"", _lineno, _curChar);
+            throw LexingError(msg);
         }
 
         if (hasAccept && !hasReading) {

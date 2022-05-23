@@ -25,9 +25,11 @@ int main(int argc, char** argv) {
     }
 
     Lexer lexer;
-    auto [tokens, errors] = lexer.lex(inFilePath);
+    auto tokens = lexer.lex(inFilePath);
+    if (lexer.hasError()) return 1;
     Parser parser(std::move(tokens));
     parser.parse();
+    if (parser.hasError()) return 1;
     IrGenerator irGen(std::move(parser.getCompUnits()));
     irGen.codegen();
     irGen.output(outFilePath, llvm::CGFT_AssemblyFile);
