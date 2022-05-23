@@ -7,6 +7,7 @@
 #include <sstream>
 
 /**
+ * Original Grammar:
  * CompUnit     ->  [CompUnit] (Decl | FuncDef)
  * Decl         ->  ConstDecl | VarDecl
  * ConstDecl    ->  'const' BType ConstDef {',' ConstDef} ';'
@@ -59,6 +60,9 @@ class ParsingError {
         : lineno(_lineno), msg(_msg) {}
 };
 
+/**
+ * @brief A top-down, non back-tracking parser with some modification of the original grammar.
+ */
 class Parser {
    public:
     /**
@@ -83,7 +87,7 @@ class Parser {
     /**
      * @brief Write AST structure to file
      */
-    void outputAst(const std::string &path);
+    void outputAst(const std::string& path);
 
     /**
      * @brief whether parser encountered errors
@@ -180,9 +184,9 @@ class Parser {
     bool eof() { return _tokenIter == _tokens.end(); }
 
     /**
-     * @brief Whether the next 'distance' token matches any of args.
+     * @brief Look ahead
      *
-     * @param distance how many step to move forward
+     * @param distance the number of look aheads
      * @param args token types
      */
     template <class... Args>

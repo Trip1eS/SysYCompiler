@@ -143,6 +143,10 @@ AstCompUnitPtr Parser::parseCompUnit() {
     }
     if (!tryToken(TokenType::INTTK) && !tryToken(TokenType::VOID)) throw error("expected a type");
     if (!tryTokenAhead(1, TokenType::ID)) throw error("expected an identifier");
+
+    // Check the 2nd token after current token. If it's a '(', then we do 'CompUnit -> FuncDef'.
+    // We want to avoid back-tracking and it's a good solution.
+    // It means it's an LL(2) grammar, but the 2 look-aheads only happens here.
     if (tryTokenAhead(2, TokenType::LPARENT)) {
         // -> FuncDef
         auto funcDef = parseFuncDef();
@@ -215,7 +219,6 @@ AstVarDefPtr Parser::parseVarDef() {
     auto id = parseID();
     while (true) {
         if (tryMatch(TokenType::LSQBRA)) {
-            // TODO: change to ConstExp
             auto exp = parseExp();
             arrLens.push_back(std::move(exp));
             if (!tryMatch(TokenType::RSQBRA)) throw error("expected a ']'");
