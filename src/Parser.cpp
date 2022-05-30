@@ -2,6 +2,23 @@
 #include <fstream>
 #include <stack>
 #include "Logger.hpp"
+#include <unordered_map>
+
+std::unordered_map<BinaryOp, int> binaryOpPriority = {
+    {BinaryOp::PLUS, 90},
+    {BinaryOp::SUB, 90},
+    {BinaryOp::MUL, 100},
+    {BinaryOp::DIV, 100},
+    {BinaryOp::MOD, 100},
+    {BinaryOp::EQUAL, 100},
+    {BinaryOp::NEQUAL, 60},
+    {BinaryOp::LESS, 70},
+    {BinaryOp::LESSEQ, 70},
+    {BinaryOp::GREATER, 70},
+    {BinaryOp::GREATEREQ, 70},
+    {BinaryOp::LOGICAND, 20},
+    {BinaryOp::LOGICOR, 10},
+};
 
 BinaryOp getBinaryOp(TokenType type) {
 #define CASE(X)        \
@@ -440,7 +457,7 @@ AstNodePtr Parser::parseStmt() {
  */
 AstExpPtr Parser::parseExp() {
     logAstNode("Exp");
-    auto addExp = parseAddExp();
+    auto addExp = parseBinaryExp();
     return makeAstNode<AstExp>(std::move(addExp));
 }
 
@@ -450,7 +467,7 @@ AstNodePtr Parser::parseConstExp() {
 
 AstCondPtr Parser::parseCond() {
     logAstNode("Cond");
-    auto lOrExp = parseLOrExp();
+    auto lOrExp = parseExp();
     return makeAstNode<AstCond>(std::move(lOrExp));
 }
 
@@ -536,123 +553,6 @@ AstFuncRParamsPtr Parser::parseFuncRParams() {
 }
 
 /**
- * MulExp -> UnaryExp | UnaryExp ('*' | '/' | '%') MulExp
- */
-AstBinaryExpPtr Parser::parseMulExp() {
-    logAstNode("MulExp");
-    auto lhs = parseUnaryExp();
-    BinaryOp op;
-    AstNodePtr rhs;
-    if (!lhs) return nullptr;
-    if (!tryToken(TokenType::MUL, TokenType::DIV, TokenType::MOD)) {
-        return makeAstNode<AstBinaryExp>(std::move(lhs));
-    }
-    while (tryToken(TokenType::MUL, TokenType::DIV, TokenType::MOD)) {
-        if (tryToken(TokenType::MUL)) {
-            op = BinaryOp::MUL;
-        } else if (tryToken(TokenType::DIV)) {
-            op = BinaryOp::DIV;
-        } else {
-            op = BinaryOp::MOD;
-        }
-        nextToken();
-        rhs = parseMulExp();
-        if (!rhs) return nullptr;
-    }
-    return makeAstNode<AstBinaryExp>(std::move(lhs), op, std::move(rhs));
-}
-
-/**
- * AddExp -> MulExp | MulExp ('+' | '-') AddExp
- */
-AstBinaryExpPtr Parser::parseAddExp() {
-    logAstNode("AddExp");
-    auto lhs = parseMulExp();
-    BinaryOp op;
-    AstNodePtr rhs;
-    if (!lhs) return nullptr;
-    if (!tryToken(TokenType::PLUS, TokenType::SUB)) {
-        return makeAstNode<AstBinaryExp>(std::move(lhs));
-    }
-    if (tryToken(TokenType::PLUS)) {
-        op = BinaryOp::PLUS;
-    } else {
-        op = BinaryOp::SUB;
-    }
-    nextToken();
-    rhs = parseAddExp();
-    if (!rhs) return nullptr;
-    return makeAstNode<AstBinaryExp>(std::move(lhs), op, std::move(rhs));
-}
-
-/**
- * RelExp ->  AddExp | AddExp ('<' | '>' | '<=' | '>=') RelExp
- */
-AstBinaryExpPtr Parser::parseRelExp() {
-    logAstNode("RelExp");
-    auto lhs = parseAddExp();
-    BinaryOp op;
-    if (!tryToken(TokenType::LESS, TokenType::GREATER, TokenType::LESSEQ, TokenType::GREATEREQ))
-        return makeAstNode<AstBinaryExp>(std::move(lhs));
-    if (tryToken(TokenType::LESS)) {
-        op = BinaryOp::LESS;
-    } else if (tryToken(TokenType::GREATER)) {
-        op = BinaryOp::GREATER;
-    } else if (tryToken(TokenType::LESSEQ)) {
-        op = BinaryOp::LESSEQ;
-    } else {
-        op = BinaryOp::GREATEREQ;
-    }
-    nextToken();
-    auto rhs = parseRelExp();
-    return makeAstNode<AstBinaryExp>(std::move(lhs), op, std::move(rhs));
-}
-
-/**
- * EaExp -> RelExp | RelExp ('==' | '!=') EqExp
- */
-AstBinaryExpPtr Parser::parseEqExp() {
-    logAstNode("EqExp");
-    auto lhs = parseRelExp();
-    BinaryOp op;
-    if (!tryToken(TokenType::EQUAL, TokenType::NEQUAL)) return makeAstNode<AstBinaryExp>(std::move(lhs));
-    if (tryToken(TokenType::EQUAL)) {
-        op = BinaryOp::EQUAL;
-    } else {
-        op = BinaryOp::NEQUAL;
-    }
-    nextToken();
-    auto rhs = parseEqExp();
-    return makeAstNode<AstBinaryExp>(std::move(lhs), op, std::move(rhs));
-}
-
-/**
- * LAndExp -> EqExp | EqExp '&&' LAndExp
- */
-AstBinaryExpPtr Parser::parseLAndExp() {
-    logAstNode("LAndExp");
-    auto lhs = parseEqExp();
-    BinaryOp op = BinaryOp::LOGICAND;
-    if (!tryToken(TokenType::LOGICAND)) return makeAstNode<AstBinaryExp>(std::move(lhs));
-    match(TokenType::LOGICAND);
-    auto rhs = parseLAndExp();
-    return makeAstNode<AstBinaryExp>(std::move(lhs), op, std::move(rhs));
-}
-
-/**
- * LOrExp -> LAndExp | LAndExp '||' LOrExp
- */
-AstBinaryExpPtr Parser::parseLOrExp() {
-    logAstNode("LOrExp");
-    auto lhs = parseLAndExp();
-    BinaryOp op = BinaryOp::LOGICOR;
-    if (!tryToken(TokenType::LOGICOR)) return makeAstNode<AstBinaryExp>(std::move(lhs));
-    match(TokenType::LOGICOR);
-    auto rhs = parseLOrExp();
-    return makeAstNode<AstBinaryExp>(std::move(lhs), op, std::move(rhs));
-}
-
-/**
  * FuncCall -> Ident '(' [Exp {',' Exp}] ')'
  */
 AstFuncCallPtr Parser::parseFuncCall() {
@@ -673,4 +573,40 @@ AstFuncCallPtr Parser::parseFuncCall() {
     }
     match(TokenType::RPARENT);
     return makeAstNode<AstFuncCall>(id, std::move(params));
+}
+
+AstNodePtr Parser::parseBinaryExp() {
+    std::stack<AstNodePtr> exps;
+    std::stack<BinaryOp> ops;
+
+    // helper function: construct a binary exp node from stacks
+    auto constructBinaryExp = [&]() {
+        auto curOp = ops.top();
+        ops.pop();
+        auto rhs = std::move(exps.top());
+        exps.pop();
+        auto lhs = std::move(exps.top());
+        exps.pop();
+        exps.push(makeAstNode<AstBinaryExp>(std::move(lhs), curOp, std::move(rhs)));
+    };
+
+    // get the first expression
+    auto exp = parseUnaryExp();
+    exps.push(std::move(exp));
+    while (getTokenCategory(curToken().getType()) == TokenCategory::OPERATOR) {
+        // get op
+        auto op = getBinaryOp(curToken().getType());
+        nextToken();
+        while (!ops.empty() && binaryOpPriority[ops.top()] >= binaryOpPriority[op]) {
+            constructBinaryExp();
+        }
+        ops.push(op);
+        exp = parseUnaryExp();
+        exps.push(std::move(exp));
+    }
+    // clear stacks
+    while (!ops.empty()) {
+        constructBinaryExp();
+    }
+    return std::move(exps.top());
 }

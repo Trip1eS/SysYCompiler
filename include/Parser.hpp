@@ -235,13 +235,8 @@ class Parser {
     AstNumberPtr parseNumber();
     AstUnaryExpPtr parseUnaryExp();
     AstFuncRParamsPtr parseFuncRParams();
-    AstBinaryExpPtr parseMulExp();
-    AstBinaryExpPtr parseAddExp();
-    AstBinaryExpPtr parseRelExp();
-    AstBinaryExpPtr parseEqExp();
-    AstBinaryExpPtr parseLAndExp();
-    AstBinaryExpPtr parseLOrExp();
     AstFuncCallPtr parseFuncCall();
+    AstNodePtr parseBinaryExp();
 #pragma endregion
 
    private:

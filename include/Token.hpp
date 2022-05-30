@@ -1,16 +1,24 @@
 #pragma once
 #include <string>
 
+enum class TokenCategory {
+    KEYWORD,
+    OPERATOR,
+    INT,
+    ID,
+    DELIMITER,
+};
+
 enum class TokenType {
-#define TOKEN(item, value) item,
+#define TOKEN(item, value, category) item,
 #include "Tokens.def"
 #undef TOKEN
 };
 
 constexpr std::string_view getTokenName(TokenType type) noexcept {
     switch (type) {
-#define TOKEN(type, value) \
-    case TokenType::type:  \
+#define TOKEN(type, value, category) \
+    case TokenType::type:            \
         return #type;
 #include "Tokens.def"
 #undef TOKEN
@@ -20,13 +28,23 @@ constexpr std::string_view getTokenName(TokenType type) noexcept {
 
 constexpr std::string_view getTokenValue(TokenType type) noexcept {
     switch (type) {
-#define TOKEN(type, value) \
-    case TokenType::type:  \
+#define TOKEN(type, value, category) \
+    case TokenType::type:            \
         return value;
 #include "Tokens.def"
 #undef TOKEN
     }
     return "undefined token";
+}
+
+constexpr TokenCategory getTokenCategory(TokenType type) noexcept {
+    switch (type) {
+#define TOKEN(type, value, category) \
+    case TokenType::type:            \
+        return TokenCategory::category;
+#include "Tokens.def"
+#undef TOKEN
+    }
 }
 
 class Token {
