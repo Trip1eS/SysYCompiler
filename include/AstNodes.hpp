@@ -134,7 +134,7 @@ class AstInitVal : public AstNodeBase {
     AstInitVal(AstExpPtr exp)
         : _exp(std::move(exp)) {}
 
-    const auto &initVals() { return _initVals; }
+    const auto &initVals() const { return _initVals; }
     const auto &exp() const { return _exp; }
 
    private:
