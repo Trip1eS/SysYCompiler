@@ -321,7 +321,7 @@ void IrGenerator::visit(const AstBinaryExp& node) {
     }
     auto rhs = codegen(*node.rhs());
     switch (node.op()) {
-        case BinaryOp::ADD:
+        case BinaryOp::PLUS:
             RETURN(_builder->CreateAdd(lhs, rhs));
         case BinaryOp::SUB:
             RETURN(_builder->CreateSub(lhs, rhs));

@@ -1,6 +1,31 @@
 #include "Parser.hpp"
 #include <fstream>
+#include <stack>
 #include "Logger.hpp"
+
+BinaryOp getBinaryOp(TokenType type) {
+#define CASE(X)        \
+    case TokenType::X: \
+        return BinaryOp::X;
+    switch (type) {
+        CASE(PLUS)
+        CASE(SUB)
+        CASE(MUL)
+        CASE(DIV)
+        CASE(MOD)
+        CASE(LESS)
+        CASE(GREATER)
+        CASE(LESSEQ)
+        CASE(GREATEREQ)
+        CASE(EQUAL)
+        CASE(NEQUAL)
+        CASE(LOGICAND)
+        CASE(LOGICOR)
+        default:
+            return BinaryOp::SINGLE;
+    }
+#undef CASE
+}
 
 Parser::Parser(std::vector<Token> tokens)
     : _tokens(tokens) {
@@ -550,7 +575,7 @@ AstBinaryExpPtr Parser::parseAddExp() {
         return makeAstNode<AstBinaryExp>(std::move(lhs));
     }
     if (tryToken(TokenType::PLUS)) {
-        op = BinaryOp::ADD;
+        op = BinaryOp::PLUS;
     } else {
         op = BinaryOp::SUB;
     }
@@ -567,7 +592,7 @@ AstBinaryExpPtr Parser::parseRelExp() {
     logAstNode("RelExp");
     auto lhs = parseAddExp();
     BinaryOp op;
-    if (!tryToken(TokenType::LESS, TokenType::GREATER, TokenType::LESSEQ, TokenType::GRETEREQ))
+    if (!tryToken(TokenType::LESS, TokenType::GREATER, TokenType::LESSEQ, TokenType::GREATEREQ))
         return makeAstNode<AstBinaryExp>(std::move(lhs));
     if (tryToken(TokenType::LESS)) {
         op = BinaryOp::LESS;

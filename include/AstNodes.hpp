@@ -17,7 +17,7 @@ enum class BType {
 };
 
 enum class BinaryOp {
-    ADD,
+    PLUS,
     SUB,
     MUL,
     DIV,
