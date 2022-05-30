@@ -23,7 +23,7 @@ Lexer::Lexer(const std::string& filePath) {
     addDifinition<StringMatcher>(TokenType::LESS, "<");
     addDifinition<StringMatcher>(TokenType::GREATER, ">");
     addDifinition<StringMatcher>(TokenType::LESSEQ, "<=");
-    addDifinition<StringMatcher>(TokenType::GRETEREQ, ">=");
+    addDifinition<StringMatcher>(TokenType::GREATEREQ, ">=");
     addDifinition<StringMatcher>(TokenType::EQUAL, "==");
     addDifinition<StringMatcher>(TokenType::NEQUAL, "!=");
     addDifinition<StringMatcher>(TokenType::LOGICAND, "&&");
