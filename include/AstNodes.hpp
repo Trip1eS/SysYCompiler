@@ -190,13 +190,13 @@ class AstFuncFParams : public AstNodeBase {
 class AstFuncFParam : public AstNodeBase {
     AST_NODE
    public:
-    AstFuncFParam(AstNodePtr type, std::string id)
+    AstFuncFParam(AstBTypePtr type, std::string id)
         : _type(std::move(type)), _id(id) {}
     const auto &type() const { return _type; }
     const auto &id() const { return _id; }
 
    private:
-    AstNodePtr _type;
+    AstBTypePtr _type;
     std::string _id;
 };
 
