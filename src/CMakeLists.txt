@@ -13,3 +13,4 @@ set_target_properties(compiler-lib PROPERTIES PREFIX "")
 
 add_executable(compiler ${RUN_FILES})
 target_link_libraries(compiler compiler-lib)
+set_target_properties(compiler PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<0:>)
