@@ -85,11 +85,6 @@ class Parser {
     AstNodePtrVector& getCompUnits() { return _compUnits; }
 
     /**
-     * @brief Write AST structure to file
-     */
-    void outputAst(const std::string& path);
-
-    /**
      * @brief whether parser encountered errors
      */
     bool hasError() const { return _hasError; }
@@ -108,28 +103,8 @@ class Parser {
     template <typename T, typename... Args>
     std::unique_ptr<T> makeAstNode(Args&&... args) {
         auto ast = std::make_unique<T>(std::forward<Args>(args)...);
-        _astDepth--;
         return ast;
     }
-
-    /**
-     * @brief Log an AST node name and lineno to _astLogStream
-     *
-     * @param str node name
-     */
-    void logAstNode(std::string_view str);
-
-    /**
-     * @brief Log an AST leaf (mostly token) to _astLogStream
-     *
-     * @param str leaf name
-     */
-    void logAstLeaf(std::string_view str);
-
-    /**
-     * @brief Log a token to _astLogStream with its data when avaliable (id, type, int literals...)
-     */
-    void logAstToken(const Token& token);
 
     /**
      * @brief Go next if current token matches type, otherwise an error will be thrown.
@@ -244,8 +219,5 @@ class Parser {
     std::vector<Token>::iterator _tokenIter;
     std::vector<ParsingError> _errors;
     AstNodePtrVector _compUnits;
-
-    std::stringstream _astLogStream;
-    int _astDepth = -1;
     bool _hasError = false;
 };

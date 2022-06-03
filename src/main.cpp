@@ -6,6 +6,7 @@
 #include "Parser.hpp"
 #include "IrGenerator.hpp"
 #include "Logger.hpp"
+#include "AstDumper.hpp"
 
 enum Target {
     TOKENS,
@@ -48,7 +49,8 @@ int main(int argc, char** argv) {
     parser.parse();
     if (parser.hasError()) return 1;
     if (target == AST) {
-        parser.outputAst(outFilePath);
+        AstDumper dumper;
+        dumper.dumpAll(parser.getCompUnits(), outFilePath);
         return 0;
     }
     IrGenerator irGen(std::move(parser.getCompUnits()));
