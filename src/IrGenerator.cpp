@@ -236,7 +236,7 @@ void IrGenerator::visit(const AstIfStmt& node) {
 
     func->getBasicBlockList().push_back(elseBB);
     _builder->SetInsertPoint(elseBB);
-    auto elseV = codegen(*node.elseStmt());
+    auto elseV = node.elseStmt() ? codegen(*node.elseStmt()) : nullptr;
     elseBB = _builder->GetInsertBlock();
     if (_builder->GetInsertBlock()->getTerminator() == nullptr) _builder->CreateBr(mergeBB);
 
