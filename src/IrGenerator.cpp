@@ -20,6 +20,8 @@ IrGenerator::IrGenerator(AstNodePtrVector compUnits)
 
     addExternFunction("getint", llvm::Type::getInt32Ty(*_context), std::vector<llvm::Type*>());
     addExternFunction("putint", llvm::Type::getVoidTy(*_context), std::vector<llvm::Type*>(1, llvm::Type::getInt32Ty(*_context)));
+    addExternFunction("getch", llvm::Type::getInt32Ty(*_context), std::vector<llvm::Type*>());
+    addExternFunction("putch", llvm::Type::getVoidTy(*_context), std::vector<llvm::Type*>(1, llvm::Type::getInt32Ty(*_context)));
 }
 
 llvm::AllocaInst* IrGenerator::createEntryBlockAlloca(llvm::Function* func, const std::string& varName = "") const {
