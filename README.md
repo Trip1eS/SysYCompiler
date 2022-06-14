@@ -2,11 +2,15 @@
 
 A toy compiler of SysY (a subset of C) written in C++17.
 
+## Dependencies
+
+* [llvm 14.0+](https://github.com/llvm/llvm-project)
+
 ## Build
 ```bash
 mkdir build
 cd build
-cmake ..
+cmake .. -DLLVM_DIR=$(llvm-config --cmakedir)
 make -j $(nproc)
 ```
 
