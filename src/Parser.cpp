@@ -444,10 +444,11 @@ AstLValPtr Parser::parseLVal() {
  * PrimaryExp -> '(' Exp ')' | LVal | Number
  */
 AstPrimaryExpPtr Parser::parsePrimaryExp() {
-    if (tryToken(TokenType::LPARENT)) {
+    if (tryMatch(TokenType::LPARENT)) {
         // -> '(' Exp ')'
-        nextToken();
-        return makeAstNode<AstPrimaryExp>(parseExp());
+        auto ret = makeAstNode<AstPrimaryExp>(parseExp());
+        match(TokenType::RPARENT);
+        return ret;
     } else if (tryToken(TokenType::ID)) {
         // -> LVal
         return makeAstNode<AstPrimaryExp>(parseLVal());
