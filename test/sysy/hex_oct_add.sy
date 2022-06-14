@@ -1,0 +1,7 @@
+int main(){
+    int a, b;
+    a = 0xf;
+    b = 0xc;
+    putint(a + b + 075);
+    return 0;
+}
